@@ -93,6 +93,20 @@
     // 统一绑定灯箱的辅助函数
     function bindLightbox(img: HTMLImageElement) {
       img.style.cursor = 'zoom-in'
+      if (img.closest('.photo-grid')) {
+        img.setAttribute('role', 'button')
+        img.setAttribute('aria-label', `查看照片：${img.alt}`)
+        img.addEventListener(
+          'keydown',
+          (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              img.click()
+            }
+          },
+          { signal },
+        )
+      }
       img.addEventListener(
         'click',
         (e) => {
@@ -117,7 +131,7 @@
 
     // 封面图
     document
-      .querySelectorAll<HTMLImageElement>('.post-cover img')
+      .querySelectorAll<HTMLImageElement>('.post-cover img, .photo-grid img')
       .forEach(bindLightbox)
   }
 

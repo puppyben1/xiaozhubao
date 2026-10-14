@@ -25,9 +25,10 @@ const { title, description, image } = Astro.props
     />
   </head>
   <body>
+    <a class="skip-content" href="#content">跳到正文</a>
     <Header />
     <PawLogo />
-    <main>
+    <main id="content" tabindex="-1">
       <slot />
     </main>
     <Footer />

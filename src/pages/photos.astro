@@ -1,0 +1,63 @@
+---
+import { getCollection } from 'astro:content'
+import PageLayout from '@layouts/PageLayout.astro'
+
+const photos = (await getCollection('albums'))
+  .filter((photo) => !photo.data.draft)
+  .sort(
+    (first, second) => second.data.date.valueOf() - first.data.date.valueOf(),
+  )
+---
+
+<PageLayout title="Photos" description="生活中的图像片段。">
+  <h1>Photos</h1>
+  <div class="photo-grid">
+    {
+      photos.map((photo) => (
+        <figure>
+          <>
+            <img
+              src={photo.data.src}
+              alt={photo.data.alt || photo.data.title}
+              width={photo.data.width}
+              height={photo.data.height}
+              loading="lazy"
+              decoding="async"
+              tabindex="0"
+            />
+            <figcaption>{photo.data.title}</figcaption>
+          </>
+        </figure>
+      ))
+    }
+  </div>
+</PageLayout>
+
+<style>
+  h1 {
+    font-size: 28.8px;
+    font-weight: 600;
+    margin-bottom: 32px;
+  }
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 0;
+  }
+  figcaption {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  @media (max-width: 480px) {
+    .photo-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

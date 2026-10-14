@@ -1,0 +1,44 @@
+---
+const tabs = [
+  { href: '/posts', label: 'Posts' },
+  { href: '/moments', label: 'Moments' },
+  { href: '/notes', label: 'Notes' },
+  { href: '/questions', label: 'Questions' },
+]
+---
+
+<nav class="blog-sections" aria-label="博客栏目">
+  {
+    tabs.map((tab) => (
+      <a
+        href={tab.href}
+        aria-current={
+          Astro.url.pathname === tab.href ||
+          Astro.url.pathname === `${tab.href}/`
+            ? 'page'
+            : undefined
+        }
+      >
+        {tab.label}
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .blog-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 52px;
+    font-size: 18px;
+    color: var(--muted);
+  }
+  a[aria-current] {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  a:hover {
+    color: var(--ink);
+  }
+</style>

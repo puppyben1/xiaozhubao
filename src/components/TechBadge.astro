@@ -7,11 +7,9 @@ type Props = {
 
 const { name, icon, href } = Astro.props
 
-const badgeClasses =
-  'my-0 inline-flex items-center rounded-md border border-stone-200/80 bg-stone-50/70 px-2.5 py-1.5 text-xs leading-4 text-stone-700 no-underline transition-colors duration-200 dark:border-stone-800 dark:bg-stone-900/70 dark:text-stone-300 gap-1.5'
+const badgeClasses = 'tech-badge'
 
-const hoverClasses =
-  'hover:border-stone-300 hover:bg-stone-100/70 dark:hover:border-stone-700 dark:hover:bg-stone-800/70'
+const hoverClasses = 'tech-badge-link'
 ---
 
 {
@@ -33,17 +31,46 @@ const hoverClasses =
     </a>
   ) : (
     <span class={badgeClasses}>
-      <img
-        alt={`${name} Logo`}
-        loading="lazy"
-        width="14"
-        height="14"
-        decoding="async"
-        class="pointer-events-none"
-        src={icon}
-        style="color: transparent;"
-      />
+      {icon && (
+        <img
+          alt={`${name} Logo`}
+          loading="lazy"
+          width="14"
+          height="14"
+          decoding="async"
+          class="pointer-events-none"
+          src={icon}
+          style="color: transparent;"
+        />
+      )}
       {name}
     </span>
   )
 }
+
+<style>
+  .tech-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 7.2px;
+    padding: 3px 8px;
+    background: color-mix(in srgb, var(--ink) 7%, transparent);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    text-decoration: none;
+  }
+  .tech-badge img {
+    width: 18.4px;
+    height: 18.4px;
+    border-radius: 0;
+  }
+  .tech-badge-link {
+    transition: opacity 180ms ease;
+  }
+  .tech-badge-link:hover {
+    opacity: 0.72;
+  }
+</style>

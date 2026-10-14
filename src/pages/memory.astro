@@ -1,0 +1,486 @@
+---
+import { photos, letters } from '../data/memory'
+import '../styles/memory.css'
+import DailyWindows from '../components/DailyWindows.astro'
+import '../styles/daily-life.css'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="一个收藏文字、照片和小小快乐的复古回忆桌面。"
+    />
+    <meta name="theme-color" content="#f5c9db" />
+    <title>小猪宝 · 把小日子存起来</title>
+    <link rel="icon" href="/favicon.ico" />
+  </head>
+  <body>
+    <a class="skip-link" href="#desktop">跳到桌面内容</a>
+    <div class="memory-os" data-theme="pudding">
+      <header class="menu-bar">
+        <a href="/memory" class="os-brand"><span>♥</span> FOR YOU OS</a>
+        <nav aria-label="桌面菜单">
+          <button data-open="photos">FILE</button>
+          <button data-open="mail">MAIL</button>
+          <a href="/">BLOG ↗</a>
+        </nav>
+        <div class="menu-right">
+          <label for="theme-picker">STYLE</label>
+          <select id="theme-picker"
+            ><option value="bubble">B · BUBBLE AQUA</option><option
+              value="picnic">A · COOKIE PICNIC</option
+            ><option value="pudding" selected>C · PIGGY PINK</option></select
+          >
+          <span class="system-date">MEMORY EDITION</span>
+        </div>
+      </header>
+
+      <main id="desktop" class="desktop">
+        <div class="sky-dots" aria-hidden="true"></div>
+        <svg
+          class="landscape"
+          viewBox="0 0 1440 380"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          ><path
+            d="M0 280 170 200 280 230 390 145 520 210 680 100 830 195 1000 125 1130 220 1290 150 1440 200V380H0Z"
+            fill="currentColor"></path><path
+            d="M0 288 170 211 280 241 390 155"
+            fill="none"
+            stroke="var(--lavender)"
+            stroke-width="9"
+            opacity=".48"></path></svg
+        >
+        <div class="sparkles" aria-hidden="true">
+          {
+            Array.from({ length: 11 }, (_, index) => (
+              <span style={`--index:${index}`}>✦</span>
+            ))
+          }
+        </div>
+        <section class="hero">
+          <div class="eyebrow">FOR YOU / LITTLE MEMORIES / FOREVER</div>
+          <h1>FOR YOU<span>.zip</span></h1>
+          <p class="hero-subtitle">A little memory archive</p>
+          <p class="hero-description">把与你有关的回忆，一件件收好。</p>
+          <p class="hero-copy">
+            有些日子值得按下保存键。<br
+            />照片、信件，还有那些不想忘记的小事。<br
+            />欢迎回来，这里一直有你的位置。
+          </p>
+          <button class="boot-button" data-open="photos"
+            ><span>OPEN A LITTLE MEMORY</span><span>↗</span></button
+          >
+          <div class="hero-meta">
+            <span class="status-dot"></span> LOCAL FIRST <span>·</span> MADE WITH
+            A LITTLE LOVE
+          </div>
+          <nav class="daily-dock" aria-label="小猪生活应用">
+            <button data-open="bowel"
+              ><span>💩</span>便便签到<small>记录小轻松</small></button
+            >
+            <button data-open="meals"
+              ><span>🍚</span>吃饭记录<small>收藏每一餐</small></button
+            >
+            <button data-open="food"
+              ><span>🎰</span>今天吃什么<small>让小猪帮你选</small></button
+            >
+          </nav>
+        </section>
+
+        <section class="buddy-scene" aria-label="桌面伙伴">
+          <div class="speech-bubble">
+            哼哼，把今天的开心存起来 <span>♡</span>
+          </div>
+          <svg
+            class="buddy"
+            viewBox="0 0 320 300"
+            role="img"
+            aria-label="粉色小猪存钱罐，头顶投币口和爱心金币"
+          >
+            <ellipse
+              cx="172"
+              cy="276"
+              rx="91"
+              ry="13"
+              fill="#554662"
+              opacity=".12"></ellipse>
+            <path
+              d="M73 207Q47 229 65 241Q86 252 101 223M228 207Q254 229 238 244Q218 252 204 225"
+              fill="#f5b5cd"
+              stroke="#57496a"
+              stroke-width="5"></path>
+            <path
+              d="M124 236Q106 272 126 274Q143 274 148 246M183 243Q188 273 208 272Q222 267 206 236"
+              fill="#e995b5"
+              stroke="#57496a"
+              stroke-width="5"></path>
+            <ellipse
+              cx="166"
+              cy="153"
+              rx="113"
+              ry="109"
+              fill="#57496a"
+              opacity=".75"></ellipse>
+            <path
+              d="M78 80Q51 13 99 29Q132 35 128 72M189 67Q190 14 225 28Q254 43 235 91"
+              fill="#f5b5cd"
+              stroke="#57496a"
+              stroke-width="5"></path>
+            <path
+              d="M82 64 78 39Q102 36 111 60M203 58Q204 34 221 38L225 70"
+              fill="#e995b5"></path>
+            <ellipse
+              cx="154"
+              cy="144"
+              rx="113"
+              ry="109"
+              fill="#f8c5d9"
+              stroke="#57496a"
+              stroke-width="5"></ellipse>
+            <path
+              d="M74 210Q160 279 247 194Q235 250 168 252Q109 252 74 210"
+              fill="#efacc8"></path>
+            <path
+              d="M129 65Q155 56 180 65"
+              fill="none"
+              stroke="#57496a"
+              stroke-width="8"
+              stroke-linecap="round"></path>
+            <g class="piggy-coin">
+              <ellipse
+                cx="154"
+                cy="23"
+                rx="14"
+                ry="21"
+                fill="#ffe2a0"
+                stroke="#57496a"
+                stroke-width="4"></ellipse>
+              <path
+                d="M154 13C144 5 139 19 154 30C169 19 164 5 154 13"
+                fill="#d6819f"></path>
+            </g>
+            <path
+              d="M264 193Q302 205 294 185Q288 171 283 185Q280 195 292 198"
+              fill="none"
+              stroke="#57496a"
+              stroke-width="5"
+              stroke-linecap="round"></path>
+            <path
+              d="M98 82Q78 97 76 113"
+              fill="none"
+              stroke="#fff9ed"
+              stroke-width="8"
+              stroke-linecap="round"
+              opacity=".8"></path>
+            <ellipse
+              cx="43"
+              cy="135"
+              rx="23"
+              ry="13"
+              transform="rotate(-16 43 135)"
+              fill="#f5b5cd"
+              stroke="#57496a"
+              stroke-width="5"></ellipse>
+            <ellipse
+              cx="268"
+              cy="137"
+              rx="23"
+              ry="13"
+              transform="rotate(16 268 137)"
+              fill="#f5b5cd"
+              stroke="#57496a"
+              stroke-width="5"></ellipse>
+            <ellipse cx="120" cy="144" rx="6" ry="10" fill="#57496a"
+            ></ellipse><ellipse cx="190" cy="144" rx="6" ry="10" fill="#57496a"
+            ></ellipse>
+            <ellipse cx="101" cy="172" rx="14" ry="6" fill="#edb6c3"
+            ></ellipse><ellipse cx="210" cy="172" rx="14" ry="6" fill="#edb6c3"
+            ></ellipse>
+            <ellipse
+              cx="155"
+              cy="175"
+              rx="30"
+              ry="21"
+              fill="#e995b5"
+              stroke="#57496a"
+              stroke-width="4"></ellipse>
+            <ellipse cx="144" cy="175" rx="4" ry="6" fill="#57496a"></ellipse>
+            <ellipse cx="166" cy="175" rx="4" ry="6" fill="#57496a"></ellipse>
+            <path
+              d="M145 207Q155 214 165 207"
+              fill="none"
+              stroke="#57496a"
+              stroke-width="4"
+              stroke-linecap="round"></path>
+            <path
+              d="M211 180C193 167 210 158 214 169C220 158 235 169 211 180"
+              fill="#ba6b88"></path>
+            <path d="m75 87 4-10 4 10 10 4-10 4-4 10-4-10-10-4Z" fill="#f9e793"
+            ></path>
+          </svg>
+          <span class="buddy-tag">PIGGY BANK · 存一点小幸福</span>
+        </section>
+
+        <nav class="desktop-icons" aria-label="桌面应用">
+          <button data-open="photos"
+            ><span class="app-icon icon-photos">▧</span><strong
+              >PHOTO DRAWER</strong
+            ><small>6 LITTLE MEMORIES</small></button
+          >
+          <button data-open="mail"
+            ><span class="app-icon icon-mail">✉</span><strong>MAILBOX</strong
+            ><small id="unread-count">6 UNREAD</small></button
+          >
+          <a href="/posts"
+            ><span class="app-icon icon-blog">▤</span><strong>JOURNAL</strong
+            ><small>WORDS & STORIES ↗</small></a
+          >
+          <button data-open="style"
+            ><span class="app-icon icon-style">✿</span><strong
+              >PERSONALIZE</strong
+            ><small>MAKE IT YOURS</small></button
+          >
+        </nav>
+
+        <div class="desktop-note">
+          <span>✦</span> SOME THINGS ARE WORTH KEEPING.
+        </div>
+
+        <section
+          class="retro-window photo-window"
+          id="window-photos"
+          role="dialog"
+          aria-labelledby="title-photos"
+          tabindex="-1"
+          hidden
+        >
+          <header class="window-titlebar">
+            <h2 id="title-photos">♥ PHOTO_DRAWER</h2><div>
+              <button data-minimize aria-label="最小化照片抽屉">−</button
+              ><button data-close aria-label="关闭照片抽屉">×</button>
+            </div>
+          </header>
+          <div class="window-body">
+            <div class="window-intro">
+              <div>
+                <span class="micro-label">COLLECTION / 01</span><h3>
+                  把平凡的瞬间，留久一点。
+                </h3>
+              </div><span class="collection-count"
+                >06 <small>MEMORIES</small></span
+              >
+            </div>
+            <p class="sample-note">
+              ✦ 示例相框 · 放入你自己的照片后，这里就会成为你的回忆。
+            </p>
+            <div class="photo-grid">
+              {
+                photos.map((photo, index) => (
+                  <button
+                    class={`polaroid tone-${photo.tone}`}
+                    data-photo={index}
+                    style={`--tilt:${[-2, 1.5, -1, 1.5, -1.5, 1][index]}deg`}
+                    aria-label={`查看${photo.title}`}
+                  >
+                    <>
+                      <span class="photo-image">
+                        {photo.src ? (
+                          <img
+                            src={photo.src}
+                            alt={photo.title}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <>
+                            <span class="photo-number">IMG_00{index + 1}</span>
+                            <span class="placeholder-art" aria-hidden="true">
+                              {['✿', '≈', '☾', '♡', '✧', '↗'][index]}
+                            </span>
+                            <small>YOUR PHOTO HERE</small>
+                          </>
+                        )}
+                      </span>
+                      <span class="photo-caption">{photo.title} ♡</span>
+                    </>
+                  </button>
+                ))
+              }
+            </div>
+          </div>
+          <footer class="window-status">
+            <span>6 items · 照片示例</span><span>MEMORIES NEVER EXPIRE</span>
+          </footer>
+        </section>
+
+        <section
+          class="retro-window mail-window"
+          id="window-mail"
+          role="dialog"
+          aria-labelledby="title-mail"
+          tabindex="-1"
+          hidden
+        >
+          <header class="window-titlebar">
+            <h2 id="title-mail">♥ BIRTHDAY_MAILBOX</h2><div>
+              <button data-minimize aria-label="最小化信箱">−</button><button
+                data-close
+                aria-label="关闭信箱">×</button
+              >
+            </div>
+          </header>
+          <div class="mail-layout">
+            <nav class="letter-list" aria-label="选择信件">
+              <span class="micro-label">LETTERS FOR YOU</span>{
+                letters.map((letter, index) => (
+                  <button data-letter={index} aria-pressed={index === 0}>
+                    <>
+                      <span class="letter-dot">●</span>
+                      <span>
+                        <>
+                          <strong>第 {index + 1} 封小信</strong>
+                          <small>{letter.title}</small>
+                        </>
+                      </span>
+                    </>
+                  </button>
+                ))
+              }<p>示例信件，等待你的故事。<br />已读状态只保存在本机。</p>
+            </nav><div class="letter-space">
+              {
+                letters.map((letter, index) => (
+                  <article
+                    class="letter-paper"
+                    data-letter-content={index}
+                    hidden={index !== 0}
+                  >
+                    <>
+                      <span class="micro-label">
+                        NO. 0{index + 1} / A LETTER FOR YOU
+                      </span>
+                      <h3>{letter.subject}</h3>
+                      <div class="letter-flourish" aria-hidden="true">
+                        ✦ ♡ ⌁ ✿
+                      </div>
+                      <p>{letter.body}</p>
+                      <span class="letter-signature">with love, always.</span>
+                    </>
+                  </article>
+                ))
+              }
+            </div>
+          </div>
+          <footer class="window-status">
+            <span>6 letters · 信件示例</span><span>TAKE YOUR TIME ♡</span>
+          </footer>
+        </section>
+
+        <DailyWindows />
+        <section
+          class="retro-window style-window"
+          id="window-style"
+          role="dialog"
+          aria-labelledby="title-style"
+          tabindex="-1"
+          hidden
+        >
+          <header class="window-titlebar">
+            <h2 id="title-style">♥ PERSONALIZE</h2><div>
+              <button data-minimize aria-label="最小化个性化设置">−</button
+              ><button data-close aria-label="关闭个性化设置">×</button>
+            </div>
+          </header>
+          <div class="window-body style-body">
+            <span class="micro-label">A SMALL CHANGE OF SCENERY</span><h3>
+              选一个今天的颜色。
+            </h3><p>
+              同一个小桌面，三种不同的心情。设置只保存在你的浏览器。
+            </p><div class="theme-options">
+              {
+                [
+                  {
+                    id: 'picnic',
+                    title: 'Cookie picnic',
+                    code: 'A',
+                    color: '#dfe8bf',
+                  },
+                  {
+                    id: 'bubble',
+                    title: 'Bubble aqua',
+                    code: 'B',
+                    color: '#abe0df',
+                  },
+                  {
+                    id: 'pudding',
+                    title: 'Piggy pink',
+                    code: 'C',
+                    color: '#f5c9db',
+                  },
+                ].map((theme) => (
+                  <button
+                    data-set-theme={theme.id}
+                    aria-pressed={theme.id === 'pudding'}
+                  >
+                    <>
+                      <span
+                        class="theme-swatch"
+                        style={`background:${theme.color}`}
+                      >
+                        ✦
+                      </span>
+                      <span class="micro-label">STYLE {theme.code}</span>
+                      <strong>{theme.title}</strong>
+                      <small>SELECT THEME ↗</small>
+                    </>
+                  </button>
+                ))
+              }
+            </div><p class="sample-note">
+              地图、抓星星小游戏与角色包将在后续版本加入；本版不接入云端上传。
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="taskbar">
+        <button id="start-button" data-open="style">♥ START</button><div
+          id="task-buttons"
+          aria-label="运行中的应用"
+        >
+          <span id="idle-status">选择一个图标，打开一份回忆。</span><button
+            data-task="photos"
+            hidden>▧ PHOTOS</button
+          ><button data-task="mail" hidden>✉ MAIL</button><button
+            data-task="style"
+            hidden>✿ STYLE</button
+          >
+          <button data-task="bowel" hidden>💩 便便</button>
+          <button data-task="meals" hidden>🍚 吃饭</button>
+          <button data-task="food" hidden>🎰 吃什么</button>
+        </div><span class="taskbar-message">♡ 一直在你这边</span>
+      </footer>
+      <span class="sr-only" id="desktop-status" role="status"></span>
+      <noscript
+        ><p class="noscript-note">
+          桌面交互需要 JavaScript。你仍然可以访问 <a href="/posts">博客文章</a
+          >。
+        </p></noscript
+      >
+    </div>
+    <dialog id="photo-preview" aria-labelledby="preview-title">
+      <button id="preview-close" aria-label="关闭照片预览">×</button><div
+        id="preview-image"
+      >
+      </div><span class="micro-label" id="preview-number"></span><h2
+        id="preview-title"
+      >
+      </h2><p id="preview-caption"></p>
+    </dialog>
+    <script src="../scripts/memory-desktop.ts"></script>
+    <script src="../scripts/daily-life.ts"></script>
+  </body>
+</html>

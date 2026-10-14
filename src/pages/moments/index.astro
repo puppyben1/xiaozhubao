@@ -1,503 +1,66 @@
 ---
-import Container from '@components/Container.astro'
+import { getCollection, render } from 'astro:content'
 import PageLayout from '@layouts/PageLayout.astro'
-import { getCollection } from 'astro:content'
+import BlogNav from '@components/BlogNav.astro'
+import { THOUGHTS } from '@consts'
 
-const collection = (await getCollection('albums')).filter(
-  (item) => !item.data.draft,
+const collection = (await getCollection('thoughts'))
+  .filter((thought) => !thought.data.draft)
+  .sort(
+    (first, second) => second.data.date.valueOf() - first.data.date.valueOf(),
+  )
+const moments = await Promise.all(
+  collection.map(async (moment) => ({ ...moment, ...(await render(moment)) })),
 )
-
-const moments = collection
-  .map((item) => ({
-    id: item.id,
-    alt: item.data.alt || item.data.title,
-    date: item.data.date,
-    description: item.data.description || '',
-    height: item.data.height,
-    location: item.data.location || '',
-    src: item.data.src,
-    thumb: item.data.thumb,
-    title: item.data.title,
-    width: item.data.width,
-  }))
-  .sort((a, b) => {
-    const aTime = a.date ? new Date(a.date).valueOf() : 0
-    const bTime = b.date ? new Date(b.date).valueOf() : 0
-    return bTime - aTime
-  })
-
-const INITIAL_MOMENT_COUNT = 9
-const BATCH_MOMENT_COUNT = 9
-const albumDescription = `收集一些生活图像片段。共 ${moments.length} 张。`
-
-const formatMomentDate = (date?: Date | string) => {
-  if (!date) return ''
-  const value = new Date(date)
-  if (Number.isNaN(value.getTime())) return String(date)
-  return value.toLocaleDateString('zh-CN', {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-  })
-}
-
-const toMomentDateValue = (date?: Date | string) => {
-  if (!date) return ''
-  const value = new Date(date)
-  if (Number.isNaN(value.getTime())) return String(date)
-  return value.toISOString()
-}
 ---
 
-<PageLayout title="相册" description={albumDescription}>
-  <Container class="!max-w-[820px]">
-    <div class="space-y-8">
-      <header class="py-4">
-        <div class="flex items-start gap-2">
-          <h1
-            class="text-3xl font-semibold text-stone-950 sm:text-4xl dark:text-stone-50"
-          >
-            相册
-          </h1>
-          <a
-            href="/moments/new"
-            class="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-stone-400/70 opacity-60 transition-all hover:bg-stone-100/70 hover:text-stone-800 hover:opacity-100 dark:text-stone-500 dark:hover:bg-stone-800/70 dark:hover:text-stone-100"
-            aria-label="新增照片"
-            title="新增照片"
-          >
-            <svg
-              class="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-              <path d="M12 8v8"></path>
-              <path d="M8 12h8"></path>
-            </svg>
-          </a>
-        </div>
-        <p class="mt-3 max-w-2xl text-stone-600 dark:text-stone-400">
-          收集一些不一定写成文章，但值得被留下来的画面。共 {moments.length} 张。
-        </p>
-      </header>
-
-      {
-        moments.length > 0 ? (
-          <>
-            <div
-              id="moments-gallery"
-              class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3"
-            >
-              {moments.map((moment, index) => (
-                <button
-                  type="button"
-                  class={`moment-photo group relative block w-full overflow-hidden rounded-lg bg-stone-100 text-left shadow-sm shadow-stone-900/[0.025] transition-opacity duration-300 dark:bg-stone-900 dark:shadow-black/20 ${index >= INITIAL_MOMENT_COUNT ? 'hidden' : ''}`}
-                  data-moment-card
-                  data-index={index}
-                  data-src={moment.src}
-                  data-alt={moment.alt}
-                  data-title={moment.title}
-                  data-description={moment.description}
-                  data-date={toMomentDateValue(moment.date)}
-                  data-formatted-date={formatMomentDate(moment.date)}
-                  data-location={moment.location}
-                  aria-label={`查看照片：${moment.title}`}
-                >
-                  <img
-                    src={
-                      index < INITIAL_MOMENT_COUNT ? moment.thumb : undefined
-                    }
-                    data-src={moment.thumb}
-                    alt={moment.alt}
-                    width={moment.width}
-                    height={moment.height}
-                    class="h-auto w-full border-0 object-cover shadow-none transition-transform duration-500 group-hover:scale-[1.025]"
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    fetchpriority={index === 0 ? 'high' : undefined}
-                    decoding="async"
-                  />
-                  <span class="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/56 via-black/14 to-transparent p-4 text-white">
-                    <span class="mb-2 flex items-center justify-between gap-3 text-xs text-white/78">
-                      {moment.date && (
-                        <time class="font-mono">
-                          {formatMomentDate(moment.date)}
-                        </time>
-                      )}
-                    </span>
-                    <span class="text-sm leading-snug font-medium">
-                      {moment.title}
-                    </span>
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <div
-              id="moments-loader"
-              class="flex flex-col items-center gap-3 pt-2 text-center text-sm text-stone-500 dark:text-stone-400"
-              data-initial-count={INITIAL_MOMENT_COUNT}
-              data-batch-count={BATCH_MOMENT_COUNT}
-            >
-              <span data-loader-text>继续向下，加载更多照片</span>
-              <button
-                type="button"
-                class="rounded-md border border-stone-200/70 px-3 py-1.5 text-xs transition-colors hover:bg-stone-100 hover:text-stone-900 dark:border-stone-800 dark:hover:bg-stone-900 dark:hover:text-stone-100"
-                data-load-more
-              >
-                加载更多
-              </button>
-            </div>
-
-            <div
-              id="moment-lightbox"
-              class="fixed inset-0 z-[90] hidden items-center justify-center bg-stone-950/92 p-4 text-white"
-              aria-hidden="true"
-              role="dialog"
-              aria-modal="true"
-              aria-label="照片预览"
-            >
-              <button
-                type="button"
-                class="absolute inset-0 cursor-zoom-out"
-                data-lightbox-backdrop
-                aria-label="关闭预览"
-              >
-                <span class="sr-only">关闭预览</span>
-              </button>
-
-              <button
-                type="button"
-                class="absolute top-4 right-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-white ring-1 ring-white/10 backdrop-blur-sm transition-colors hover:bg-white hover:text-stone-950 sm:top-6 sm:right-6"
-                data-lightbox-close
-                aria-label="关闭预览"
-              >
-                <svg
-                  class="h-4.5 w-4.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                >
-                  <path d="M6 6l12 12" />
-                  <path d="M18 6L6 18" />
-                </svg>
-              </button>
-
-              <button
-                type="button"
-                class="absolute top-1/2 left-3 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white ring-1 ring-white/10 backdrop-blur-sm transition-colors hover:bg-white hover:text-stone-950 sm:left-6 sm:h-12 sm:w-12"
-                data-lightbox-prev
-                aria-label="上一张照片"
-              >
-                <svg
-                  class="h-5 w-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
-
-              <button
-                type="button"
-                class="absolute top-1/2 right-3 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white ring-1 ring-white/10 backdrop-blur-sm transition-colors hover:bg-white hover:text-stone-950 sm:right-6 sm:h-12 sm:w-12"
-                data-lightbox-next
-                aria-label="下一张照片"
-              >
-                <svg
-                  class="h-5 w-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </button>
-
-              <div class="relative z-10 flex max-h-full w-[calc(100vw-7rem)] max-w-5xl flex-col items-center gap-4 sm:w-[calc(100vw-9rem)]">
-                <figure class="inline-flex max-h-[calc(100vh-2rem)] max-w-full items-center justify-center">
-                  <img
-                    alt=""
-                    class="max-h-[calc(100vh-2rem)] w-auto max-w-full rounded-lg border-0 object-contain shadow-2xl shadow-black/45"
-                    data-lightbox-image
-                  />
-                </figure>
-              </div>
-
-              <div class="pointer-events-none absolute bottom-4 left-4 z-30 max-w-[min(28rem,calc(100vw-2rem))] rounded-lg bg-black/34 px-4 py-3 text-left text-white ring-1 ring-white/10 backdrop-blur-sm sm:bottom-6 sm:left-6">
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/58">
-                  <time data-lightbox-date />
-                  <span data-lightbox-location />
-                </div>
-                <h2 class="mt-1 text-sm font-medium" data-lightbox-title />
-                <p
-                  class="mt-1 line-clamp-3 text-xs leading-5 text-white/64"
-                  data-lightbox-description
-                />
-              </div>
-            </div>
-          </>
-        ) : (
-          <div class="ink-card p-8 text-center">
-            <p class="text-stone-500 dark:text-stone-400">相册还在整理中。</p>
+<PageLayout title="Moments" description={THOUGHTS.DESCRIPTION}>
+  <BlogNav />
+  <h1 class="sr-only">Moments</h1>
+  {
+    moments.map(({ data, Content }) => (
+      <section class="moment">
+        <time datetime={data.date.toISOString()}>
+          {data.date.toLocaleDateString('zh-CN')}
+        </time>
+        <article>
+          <Content />
+        </article>
+        {data.tags && (
+          <div class="moment-tags">
+            {data.tags.map((tag) => (
+              <span>#{tag}</span>
+            ))}
           </div>
-        )
-      }
-    </div>
-  </Container>
-
-  <script>
-    interface MomentsWindow extends Window {
-      __astroDogeMomentsController?: AbortController
-    }
-
-    const momentsWindow = window as MomentsWindow
-    momentsWindow.__astroDogeMomentsController?.abort()
-
-    const controller = new AbortController()
-    const { signal } = controller
-    momentsWindow.__astroDogeMomentsController = controller
-
-    const gallery = document.querySelector<HTMLElement>('#moments-gallery')
-    const loader = document.querySelector<HTMLElement>('#moments-loader')
-    const loadMoreButton =
-      document.querySelector<HTMLButtonElement>('[data-load-more]')
-    const loaderText = document.querySelector<HTMLElement>('[data-loader-text]')
-    const initialCount = Number(loader?.getAttribute('data-initial-count') || 9)
-    const batchCount = Number(loader?.getAttribute('data-batch-count') || 9)
-    const getCardIndex = (card: HTMLElement) =>
-      Number(card.getAttribute('data-index') || 0)
-    const cards = gallery
-      ? Array.from(
-          gallery.querySelectorAll<HTMLElement>('[data-moment-card]'),
-        ).sort((a, b) => getCardIndex(a) - getCardIndex(b))
-      : []
-    let visibleCount = Math.min(initialCount, cards.length)
-    let observer: IntersectionObserver | null = null
-    let resizeFrame = 0
-
-    const getColumnCount = () => {
-      if (window.matchMedia('(min-width: 1024px)').matches) return 3
-      return 2
-    }
-
-    const loadImage = (card: HTMLElement) => {
-      const image = card.querySelector<HTMLImageElement>('img')
-      const src = image?.getAttribute('data-src')
-      if (image && src && !image.getAttribute('src')) {
-        image.setAttribute('src', src)
-      }
-    }
-
-    const buildGalleryColumns = () => {
-      if (!gallery) return
-      const columnCount = getColumnCount()
-      if (gallery.dataset.columnCount === String(columnCount)) return
-
-      const fragment = document.createDocumentFragment()
-      const columns = Array.from({ length: columnCount }, () => {
-        const column = document.createElement('div')
-        column.className = 'grid content-start gap-4'
-        column.dataset.masonryColumn = ''
-        fragment.appendChild(column)
-        return column
-      })
-
-      cards.forEach((card, index) => {
-        columns[index % columnCount]?.appendChild(card)
-      })
-      gallery.replaceChildren(fragment)
-      gallery.dataset.columnCount = String(columnCount)
-    }
-
-    const updateLoader = () => {
-      if (!loader) return
-      const hasMore = visibleCount < cards.length
-      loader.classList.toggle('hidden', !hasMore)
-      if (loaderText) {
-        loaderText.textContent = hasMore
-          ? `继续向下，加载更多照片（${visibleCount}/${cards.length}）`
-          : ''
-      }
-    }
-
-    const syncGallery = () => {
-      buildGalleryColumns()
-      visibleCount = Math.min(visibleCount, cards.length)
-
-      cards.forEach((card) => {
-        const isVisible = getCardIndex(card) < visibleCount
-        card.classList.toggle('hidden', !isVisible)
-        if (isVisible) loadImage(card)
-      })
-
-      updateLoader()
-    }
-
-    const requestGallerySync = () => {
-      if (resizeFrame) window.cancelAnimationFrame(resizeFrame)
-      resizeFrame = window.requestAnimationFrame(() => {
-        resizeFrame = 0
-        syncGallery()
-      })
-    }
-
-    const revealNextBatch = () => {
-      const nextCount = Math.min(visibleCount + batchCount, cards.length)
-      visibleCount = nextCount
-      syncGallery()
-      if (visibleCount >= cards.length && observer) {
-        observer.disconnect()
-      }
-    }
-
-    signal.addEventListener(
-      'abort',
-      () => {
-        observer?.disconnect()
-        if (resizeFrame) window.cancelAnimationFrame(resizeFrame)
-        document.documentElement.classList.remove('overflow-hidden')
-        document.body.classList.remove('overflow-hidden')
-      },
-      { once: true },
-    )
-
-    syncGallery()
-    window.addEventListener('resize', requestGallerySync, { signal })
-
-    loadMoreButton?.addEventListener('click', revealNextBatch, { signal })
-
-    if (loader && 'IntersectionObserver' in window) {
-      observer = new IntersectionObserver(
-        (entries) => {
-          if (entries.some((entry) => entry.isIntersecting)) {
-            revealNextBatch()
-          }
-        },
-        { rootMargin: '520px 0px' },
-      )
-      observer.observe(loader)
-    }
-
-    const lightbox = document.querySelector<HTMLElement>('#moment-lightbox')
-    const lightboxImage = document.querySelector<HTMLImageElement>(
-      '[data-lightbox-image]',
-    )
-    const lightboxTitle = document.querySelector<HTMLElement>(
-      '[data-lightbox-title]',
-    )
-    const lightboxDescription = document.querySelector(
-      '[data-lightbox-description]',
-    )
-    const lightboxDate = document.querySelector<HTMLElement>(
-      '[data-lightbox-date]',
-    )
-    const lightboxLocation = document.querySelector<HTMLElement>(
-      '[data-lightbox-location]',
-    )
-    const closeButtons = document.querySelectorAll(
-      '[data-lightbox-close], [data-lightbox-backdrop]',
-    )
-    const prevButton = document.querySelector<HTMLButtonElement>(
-      '[data-lightbox-prev]',
-    )
-    const nextButton = document.querySelector<HTMLButtonElement>(
-      '[data-lightbox-next]',
-    )
-    let activeIndex = 0
-    let lastFocus: Element | null = null
-
-    const setText = (element: Element | null, value: string | null) => {
-      if (!element) return
-      element.textContent = value || ''
-      element.classList.toggle('hidden', !value)
-    }
-
-    const showMoment = (index: number) => {
-      const card = cards.find((item) => getCardIndex(item) === index)
-      if (!card || !lightbox || !lightboxImage) return
-      activeIndex = index
-      const src = card.getAttribute('data-src') || ''
-      lightboxImage.setAttribute('src', src)
-      lightboxImage.setAttribute('alt', card.getAttribute('data-alt') || '')
-      setText(lightboxTitle, card.getAttribute('data-title'))
-      setText(lightboxDescription, card.getAttribute('data-description'))
-      setText(lightboxDate, card.getAttribute('data-formatted-date'))
-      setText(lightboxLocation, card.getAttribute('data-location'))
-    }
-
-    const openLightbox = (index: number) => {
-      if (!lightbox) return
-      syncGallery()
-      lastFocus = document.activeElement
-      showMoment(index)
-      lightbox.classList.remove('hidden')
-      lightbox.classList.add('flex')
-      lightbox.setAttribute('aria-hidden', 'false')
-      document.documentElement.classList.add('overflow-hidden')
-      document.body.classList.add('overflow-hidden')
-      document.querySelector<HTMLElement>('[data-lightbox-close]')?.focus()
-    }
-
-    const closeLightbox = () => {
-      if (!lightbox) return
-      lightbox.classList.add('hidden')
-      lightbox.classList.remove('flex')
-      lightbox.setAttribute('aria-hidden', 'true')
-      lightboxImage?.removeAttribute('src')
-      document.documentElement.classList.remove('overflow-hidden')
-      document.body.classList.remove('overflow-hidden')
-      if (lastFocus instanceof HTMLElement) lastFocus.focus()
-    }
-
-    const moveLightbox = (direction: number) => {
-      syncGallery()
-      if (!cards.length) return
-      const nextIndex = (activeIndex + direction + cards.length) % cards.length
-      if (nextIndex >= visibleCount) {
-        while (visibleCount <= nextIndex) revealNextBatch()
-      }
-      showMoment(nextIndex)
-    }
-
-    cards.forEach((card) => {
-      card.addEventListener('click', () => openLightbox(getCardIndex(card)), {
-        signal,
-      })
-    })
-    closeButtons.forEach((button) =>
-      button.addEventListener('click', closeLightbox, { signal }),
-    )
-    prevButton?.addEventListener('click', () => moveLightbox(-1), { signal })
-    nextButton?.addEventListener('click', () => moveLightbox(1), { signal })
-
-    document.addEventListener(
-      'keydown',
-      (event) => {
-        if (!lightbox || lightbox.classList.contains('hidden')) return
-        if (event.key === 'Escape') closeLightbox()
-        if (event.key === 'ArrowLeft') moveLightbox(-1)
-        if (event.key === 'ArrowRight') moveLightbox(1)
-      },
-      { signal },
-    )
-
-    document.addEventListener('astro:before-swap', () => controller.abort(), {
-      once: true,
-      signal,
-    })
-  </script>
+        )}
+      </section>
+    ))
+  }
+  {moments.length === 0 && <p>这里还没有内容，慢慢积累。</p>}
 </PageLayout>
+
+<style>
+  .moment {
+    padding: 0 0 32px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  time {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  article {
+    font-size: 16px;
+    line-height: 1.9;
+  }
+  .moment-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 16px;
+  }
+</style>

@@ -1,0 +1,71 @@
+---
+import PageLayout from '@layouts/PageLayout.astro'
+import { PROJECTS } from '@consts'
+---
+
+<PageLayout title="Projects" description="我的项目与作品。">
+  <h1>Projects</h1>
+  {
+    PROJECTS.flatMap((category) => category.items).map((project) => (
+      <section class="project">
+        <div class="project-heading">
+          <>
+            <h2>{project.name}</h2>
+            <div>
+              {project.homepage && (
+                <a
+                  href={project.homepage}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  ↗ Open
+                </a>
+              )}
+              <a href={project.href} target="_blank" rel="noopener noreferrer">
+                Source ↗
+              </a>
+            </div>
+          </>
+        </div>
+        <p>{project.description}</p>
+      </section>
+    ))
+  }
+</PageLayout>
+
+<style>
+  h1 {
+    font-size: 28.8px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    margin-bottom: 36px;
+  }
+  .project {
+    padding: 0 0 36px;
+    margin-bottom: 36px;
+    border-bottom: 1px solid var(--line);
+  }
+  .project-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .project-heading > div {
+    display: flex;
+    gap: 16px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  p {
+    color: var(--muted);
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+</style>

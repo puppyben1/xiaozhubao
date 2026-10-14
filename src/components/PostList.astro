@@ -1,0 +1,119 @@
+---
+import { getCollection } from 'astro:content'
+import PageLayout from '@layouts/PageLayout.astro'
+import { BLOG } from '@consts'
+import { isVisiblePost, showDraftPosts } from '@lib/posts'
+import { formatMD } from '@lib/utils'
+import BlogNav from '@components/BlogNav.astro'
+
+interface Props {
+  section?: 'posts' | 'notes' | 'questions'
+}
+const { section = 'posts' } = Astro.props
+const title = { posts: 'Posts', notes: 'Notes', questions: 'Questions' }[
+  section
+]
+
+const posts = (await getCollection('posts'))
+  .filter((post) => isVisiblePost(post) && post.data.section === section)
+  .sort(
+    (first, second) => second.data.date.valueOf() - first.data.date.valueOf(),
+  )
+const years = [...new Set(posts.map((post) => post.data.date.getFullYear()))]
+---
+
+<PageLayout title={title} description={BLOG.DESCRIPTION}>
+  <BlogNav />
+  <h1 class="sr-only">{title}</h1>
+  {posts.length === 0 && <p class="empty-list">这里还没有内容，慢慢积累。</p>}
+  {
+    years.map((year) => (
+      <section class="post-year" aria-labelledby={`year-${year}`}>
+        <h2 id={`year-${year}`}>{year}</h2>
+        <ul>
+          {posts
+            .filter((post) => post.data.date.getFullYear() === year)
+            .map((post) => (
+              <li>
+                <a class="post-row" href={`/${post.data.slug || post.id}`}>
+                  <div>
+                    <h3>
+                      {post.data.title}
+                      {showDraftPosts && post.data.draft && (
+                        <span class="draft-label">草稿</span>
+                      )}
+                    </h3>
+                    {post.data.description && <p>{post.data.description}</p>}
+                  </div>
+                  <time datetime={post.data.date.toISOString()}>
+                    {formatMD(post.data.date)}
+                  </time>
+                  <span class="post-arrow" aria-hidden="true">
+                    ↗
+                  </span>
+                </a>
+              </li>
+            ))}
+        </ul>
+      </section>
+    ))
+  }
+</PageLayout>
+
+<style>
+  .empty-list {
+    white-space: normal;
+  }
+  .post-year {
+    margin-bottom: 48px;
+  }
+  h2 {
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  li + li {
+    border-top: 1px solid var(--line);
+  }
+  .post-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 16px;
+    align-items: center;
+    gap: 16px;
+    padding: 23px 0;
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+  p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  time,
+  .post-arrow {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .post-arrow {
+    font-size: 17px;
+    transition: transform 180ms ease;
+  }
+  .post-row:hover .post-arrow {
+    transform: translate(2px, -2px);
+    color: var(--ink);
+  }
+  .draft-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 8px;
+  }
+</style>

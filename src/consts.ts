@@ -1,9 +1,9 @@
 import type { Metadata, Projects, Site, Socials, TechStack } from '@types'
 
 export const SITE: Site = {
-  NAME: '小猪宝',
+  NAME: 'puppyben',
   EMAIL: 'hi@example.com',
-  DESCRIPTION: '小猪宝 · 把小日子存起来。粉色小猪的回忆与生活记录桌面。',
+  DESCRIPTION: '记录我的思考、学习与生活。',
   NUM_POSTS_ON_HOMEPAGE: 4,
   NUM_THOUGHTS_ON_HOMEPAGE: 3,
   NUM_RELATED_POSTS_ON_POST: 5,
@@ -11,7 +11,7 @@ export const SITE: Site = {
 
 export const HOME: Metadata = {
   TITLE: '主页',
-  DESCRIPTION: '小猪宝 · 把小日子存起来。',
+  DESCRIPTION: 'puppyben 的个人博客，记录思考、学习与生活。',
 }
 
 export const BLOG: Metadata = {
@@ -130,6 +130,6 @@ export const TECH_STACK: TechStack = [
 export const SOCIALS: Socials = [
   {
     NAME: 'GitHub',
-    HREF: 'https://github.com/username',
+    HREF: 'https://github.com/puppyben1',
   },
 ]

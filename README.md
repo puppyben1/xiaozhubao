@@ -1,6 +1,10 @@
-# 小猪宝 · 把小日子存起来
+# puppyben · 个人博客
 
-粉色小猪存钱罐风格的回忆桌面，含照片抽屉、信箱、便便签到月历、吃饭记录和吃什么老虎机。
+基于 Astro Doge 的个人博客，展示层参考 2026-10-14 实际访问的 `https://dogxi.me/`：窄栏个人介绍、响应式文字/图标导航、黑白主题、文章年份列表、项目和照片页。不是作者私有源码的完整恢复。
+
+`/posts` 展示长文，`/moments` 展示碎碎念，`/notes` 与 `/questions` 展示文章 frontmatter 中 `section: notes` 或 `section: questions` 的内容（默认 `posts`）。`/photos` 展示相册。小猪回忆桌面及生活记录保留在 `/memory`，原 `/journal` 地址跳转到博客首页。
+
+文章放在 `src/content/posts/`，碎碎念放在 `src/content/thoughts/`，照片元数据放在 `src/content/albums/`；现有内容和项目是主题示例，可替换为自己的内容。网站名称、简介和社交链接在 `src/consts.ts` 中修改。
 
 ## 本项目运行与部署
 
