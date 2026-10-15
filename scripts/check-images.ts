@@ -6,10 +6,25 @@ import {
 } from '../src/lib/server/image-api.ts'
 import { createUploadSign } from '../src/lib/server/upload-api.ts'
 import { readApiResponse } from '../src/lib/api-response.ts'
+import { webApiContext } from '../src/lib/server/web-api-context.ts'
 
 const originalFetch = globalThis.fetch
 const previous = { ...process.env }
 try {
+  const { req, res } = await webApiContext(
+    new Request('https://example.com/api/likes?ids=a&ids=b', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{"fingerprint":"abc"}',
+    }),
+  )
+  assert.deepEqual(req.query.ids, ['a', 'b'])
+  assert.deepEqual(req.body, { fingerprint: 'abc' })
+  res.setHeader('Cache-Control', 'no-store')
+  const adapted = res.status(429).json({ error: 'limited' })
+  assert.equal(adapted.status, 429)
+  assert.equal(adapted.headers.get('Cache-Control'), 'no-store')
+  assert.deepEqual(await adapted.json(), { error: 'limited' })
   process.env.GITHUB_TOKEN = 'test-only'
   process.env.THOUGHT_API_TOKEN = 'test-only'
   process.env.CONTENT_REPO = 'example/blog'

@@ -1,4 +1,5 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { APIRoute } from 'astro'
+import { webApiContext } from '@lib/server/web-api-context'
 import crypto from 'crypto'
 import {
   buildGitHubHeaders,
@@ -6,7 +7,7 @@ import {
   hasAnyEnv,
   getSiteUrl,
   setCorsHeaders,
-} from '../src/lib/server/api-utils'
+} from '@lib/server/api-utils'
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 const SITE_URL = getSiteUrl()
@@ -339,7 +340,9 @@ async function addComment(
   if (!response.ok) throw new Error('Failed to add comment')
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export const prerender = false
+export const ALL: APIRoute = async ({ request }) => {
+  const { req, res } = await webApiContext(request)
   setCorsHeaders(req, res, 'POST, OPTIONS')
 
   if (req.method === 'OPTIONS') return res.status(200).end()

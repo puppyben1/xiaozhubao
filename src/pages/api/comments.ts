@@ -1,4 +1,5 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { APIRoute } from 'astro'
+import { webApiContext } from '@lib/server/web-api-context'
 import crypto from 'crypto'
 import {
   buildGitHubHeaders,
@@ -6,7 +7,7 @@ import {
   hasAnyEnv,
   getSiteUrl,
   setCorsHeaders,
-} from '../src/lib/server/api-utils'
+} from '@lib/server/api-utils'
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 const SITE_URL = getSiteUrl()
@@ -171,7 +172,9 @@ async function fetchComments(slug: string): Promise<ParsedComment[]> {
   return buildTree(parsed)
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export const prerender = false
+export const ALL: APIRoute = async ({ request }) => {
+  const { req, res } = await webApiContext(request)
   setCorsHeaders(req, res, 'GET, OPTIONS')
   res.setHeader(
     'Cache-Control',

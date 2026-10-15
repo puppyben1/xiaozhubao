@@ -1,4 +1,5 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+type ApiRequest = { headers: Record<string, string | string[] | undefined> }
+type ApiResponse = { setHeader(name: string, value: string): unknown }
 
 function trimTrailingSlash(value: string): string {
   return value.endsWith('/') ? value.slice(0, -1) : value
@@ -9,7 +10,7 @@ export function getSiteUrl(): string {
   return raw ? trimTrailingSlash(raw) : 'https://example.com'
 }
 
-export function getAllowedOrigin(req: VercelRequest): string {
+export function getAllowedOrigin(req: ApiRequest): string {
   const configured = process.env.SITE_URL?.trim()
   if (configured) {
     try {
@@ -19,13 +20,16 @@ export function getAllowedOrigin(req: VercelRequest): string {
     }
   }
 
-  const origin = req.headers.origin?.trim()
+  const origin =
+    typeof req.headers.origin === 'string'
+      ? req.headers.origin.trim()
+      : undefined
   return origin || '*'
 }
 
 export function setCorsHeaders(
-  req: VercelRequest,
-  res: VercelResponse,
+  req: ApiRequest,
+  res: ApiResponse,
   methods: string,
   headers = 'Content-Type',
 ): void {

@@ -1,12 +1,13 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { APIRoute } from 'astro'
+import { webApiContext } from '@lib/server/web-api-context'
 import crypto from 'crypto'
 import {
   buildGitHubHeaders,
   getRepoFromEnv,
   hasAnyEnv,
   setCorsHeaders,
-} from '../src/lib/server/api-utils'
-import { getDateKeyInTimeZone } from '../src/lib/server/timezone'
+} from '@lib/server/api-utils'
+import { getDateKeyInTimeZone } from '@lib/server/timezone'
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 const SITE_TIMEZONE = process.env.SITE_TIMEZONE?.trim() || 'UTC'
@@ -465,7 +466,9 @@ async function processLike(
   return result
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export const prerender = false
+export const ALL: APIRoute = async ({ request }) => {
+  const { req, res } = await webApiContext(request)
   setCorsHeaders(req, res, 'GET, POST, OPTIONS')
 
   if (req.method === 'OPTIONS') return res.status(200).end()
@@ -525,12 +528,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'POST') {
     try {
-      const body = req.body
+      const body = req.body as Record<string, unknown> | null
       if (!body || typeof body !== 'object') {
         return res.status(400).json({ error: 'Invalid body' })
       }
 
-      if (!body.fingerprint || !validateFingerprint(body.fingerprint)) {
+      if (
+        typeof body.fingerprint !== 'string' ||
+        !validateFingerprint(body.fingerprint)
+      ) {
         return res.status(400).json({ error: 'Invalid fingerprint' })
       }
 
@@ -570,7 +576,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (body.targetId) {
-        const payload = body as SingleLikePayload
+        const payload = body as unknown as SingleLikePayload
 
         if (payload.type !== 'thought') {
           return res.status(400).json({ error: 'Invalid type' })
