@@ -28,13 +28,28 @@ Astro.response.headers.set('Cache-Control', 'no-store')
         placeholder="给这篇文章起个名字"
       />
       <div class="fields">
-        <div>
-          <label for="post-section">分类</label><select id="post-section"
-            ><option value="posts">文章</option><option value="notes"
-              >笔记</option
-            ><option value="questions">问题</option></select
-          >
-        </div>
+        <fieldset id="post-categories" class="categories">
+          <legend>分类</legend>
+          <div class="category-options">
+            {
+              [
+                ['posts', '文章'],
+                ['notes', '笔记'],
+                ['questions', '问题'],
+              ].map(([value, label]) => (
+                <label class="category">
+                  <input
+                    type="radio"
+                    name="section"
+                    value={value}
+                    checked={value === 'posts'}
+                  />
+                  <span>{label}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
         <div>
           <label for="post-slug">网址标识</label><input
             id="post-slug"
@@ -54,10 +69,24 @@ Astro.response.headers.set('Cache-Control', 'no-store')
         id="post-tags"
         placeholder="学习，生活，项目（用逗号分隔）"
       />
-      <label for="post-cover">封面地址（可选）</label><input
-        id="post-cover"
-        placeholder="https://… 或 /covers/…"
+      <div class="body-label">
+        <label for="post-cover-file">封面（可选）</label>
+        <div class="cover-actions">
+          <button id="post-cover-upload" type="button" disabled={!status.images}
+            >选择封面图片</button
+          >
+          <button id="post-cover-remove" type="button" hidden>移除封面</button>
+        </div>
+      </div>
+      <input id="post-cover" type="hidden" />
+      <input
+        id="post-cover-file"
+        type="file"
+        accept="image/*"
+        hidden
+        disabled={!status.images}
       />
+      <img id="post-cover-image" class="cover-preview" alt="封面预览" hidden />
       <div class="body-label">
         <label for="post-content">正文 · Markdown</label><button
           id="post-image"
@@ -79,7 +108,7 @@ Astro.response.headers.set('Cache-Control', 'no-store')
       <p id="post-upload-status" class="hint" role="status">
         {
           status.images
-            ? '可以上传图片，或直接粘贴 Markdown 图片链接。'
+            ? '选择图片或直接粘贴截图，上传后可在下方实时预览。'
             : '图床尚未配置，暂时可粘贴图片链接。'
         }
       </p>
@@ -87,12 +116,12 @@ Astro.response.headers.set('Cache-Control', 'no-store')
         <button
           type="button"
           id="post-preview-toggle"
-          aria-expanded="false"
-          aria-controls="post-preview">预览</button
+          aria-expanded="true"
+          aria-controls="post-preview">收起预览</button
         ><button type="button" id="post-save">保存草稿</button><button
           type="button"
-          id="post-download">下载 Markdown</button
-        ><button
+          id="post-new">新建文章</button
+        ><button type="button" id="post-download">下载 Markdown</button><button
           type="submit"
           id="post-submit"
           class="primary"
@@ -106,7 +135,14 @@ Astro.response.headers.set('Cache-Control', 'no-store')
         > · <a id="post-link">部署后查看文章 ↗</a>
       </p>
     </form>
-    <section id="post-preview" hidden aria-label="文章预览">
+    <section id="post-preview" aria-label="文章预览">
+      <p class="hint">实时预览 · 随编辑自动更新</p>
+      <img
+        id="post-preview-cover"
+        class="cover-preview"
+        alt="文章封面"
+        hidden
+      />
       <h2 id="post-preview-title"></h2><p
         id="post-preview-description"
         class="muted"
@@ -144,9 +180,8 @@ Astro.response.headers.set('Cache-Control', 'no-store')
     margin: 22px 0 8px;
     font-size: 14px;
   }
-  input:not([type='file']),
-  textarea,
-  select {
+  input:not([type='file']):not([type='radio']):not([type='hidden']),
+  textarea {
     width: 100%;
     border: 1px solid var(--line);
     border-radius: 6px;
@@ -173,6 +208,58 @@ Astro.response.headers.set('Cache-Control', 'no-store')
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 18px;
+  }
+  .categories {
+    min-width: 0;
+    border: 0;
+    padding: 0;
+    margin-top: 22px;
+  }
+  .categories legend {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .category-options,
+  .cover-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .category {
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+  }
+  .category input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .category span {
+    display: block;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+  }
+  .category input:checked + span {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .category input:focus-visible + span {
+    outline: 2px solid var(--muted);
+    outline-offset: 3px;
+  }
+  .categories:disabled {
+    opacity: 0.45;
+  }
+  .cover-preview {
+    max-width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-top: 16px;
   }
   .body-label {
     display: flex;
@@ -291,7 +378,9 @@ Astro.response.headers.set('Cache-Control', 'no-store')
     if (!root || root.dataset.initialized) return
     root.dataset.initialized = 'true'
     const input = (id: string) =>
-      document.getElementById(`post-${id}`) as HTMLInputElement
+      (id === 'section'
+        ? form.querySelector('input[name="section"]:checked')
+        : document.getElementById(`post-${id}`)) as HTMLInputElement
     const form = document.getElementById('post-form') as HTMLFormElement
     const content = document.getElementById(
       'post-content',
@@ -305,6 +394,17 @@ Astro.response.headers.set('Cache-Control', 'no-store')
     const fileInput = document.getElementById(
       'post-image-file',
     ) as HTMLInputElement
+    const coverFile = input('cover-file')
+    const coverButton = document.getElementById(
+      'post-cover-upload',
+    ) as HTMLButtonElement
+    const removeCover = document.getElementById(
+      'post-cover-remove',
+    ) as HTMLButtonElement
+    const categories = document.getElementById(
+      'post-categories',
+    ) as HTMLFieldSetElement
+    const imagesEnabled = !fileInput.disabled
     const key = 'puppyben_post_draft'
     let requestId = crypto.randomUUID()
     let uploading = false
@@ -323,8 +423,18 @@ Astro.response.headers.set('Cache-Control', 'no-store')
       const stored = JSON.parse(localStorage.getItem(key) || 'null')
       if (stored && typeof stored === 'object') {
         for (const field of fields)
-          if (typeof stored[field] === 'string')
-            input(field).value = stored[field]
+          if (typeof stored[field] === 'string') {
+            if (field === 'section') {
+              for (const radio of form.querySelectorAll<HTMLInputElement>(
+                'input[name="section"]',
+              ))
+                radio.checked = radio.value === stored.section
+              if (!form.querySelector('input[name="section"]:checked'))
+                form.querySelector<HTMLInputElement>(
+                  'input[name="section"]',
+                )!.checked = true
+            } else input(field).value = stored[field]
+          }
         if (typeof stored.requestId === 'string') requestId = stored.requestId
         feedback.textContent = '已恢复这台设备上的文章草稿。'
       }
@@ -343,6 +453,13 @@ Astro.response.headers.set('Cache-Control', 'no-store')
       }
     }
     function updatePreview() {
+      for (const id of ['cover-image', 'preview-cover']) {
+        const image = document.getElementById(`post-${id}`) as HTMLImageElement
+        image.hidden = !input('cover').value
+        if (input('cover').value) image.src = input('cover').value
+        else image.removeAttribute('src')
+      }
+      removeCover.hidden = !input('cover').value
       document.getElementById('post-preview-title')!.textContent =
         input('title').value || '未命名文章'
       document.getElementById('post-preview-description')!.textContent =
@@ -350,6 +467,34 @@ Astro.response.headers.set('Cache-Control', 'no-store')
       document.getElementById('post-preview-body')!.innerHTML =
         renderMarkdownPreview(content.value)
     }
+    function resetDraft() {
+      form.reset()
+      requestId = crypto.randomUUID()
+      input('slug').value = `article-${requestId.slice(0, 8)}`
+      // Hidden inputs keep their value through form.reset().
+      input('cover').value = ''
+      try {
+        localStorage.removeItem(key)
+      } catch {
+        feedback.textContent += ' 本地草稿无法清除，请检查浏览器存储设置。'
+      }
+      updatePreview()
+    }
+    updatePreview()
+    document.getElementById('post-new')!.addEventListener('click', () => {
+      if (uploading || publishing) return
+      if (
+        fields.some(
+          (field) => !['slug', 'section'].includes(field) && input(field).value,
+        ) &&
+        !window.confirm('放弃当前草稿并新建文章？需要保留时请先下载 Markdown。')
+      )
+        return
+      feedback.textContent = '已新建空白文章。'
+      resetDraft()
+      document.getElementById('post-result')!.hidden = true
+      input('title').focus()
+    })
     form.addEventListener('input', () => {
       save()
       if (!preview.hidden) updatePreview()
@@ -397,10 +542,20 @@ Astro.response.headers.set('Cache-Control', 'no-store')
     uploadButton.addEventListener('click', () => {
       fileInput.click()
     })
-    async function insertImage(file: File) {
-      if (fileInput.disabled || uploading || publishing) return
+    coverButton.addEventListener('click', () => coverFile.click())
+    removeCover.addEventListener('click', () => {
+      if (uploading || publishing) return
+      input('cover').value = ''
+      save()
+      updatePreview()
+    })
+    async function insertImage(file: File, target: 'body' | 'cover' = 'body') {
+      if (!imagesEnabled || uploading || publishing) return
       uploading = true
       uploadButton.disabled = true
+      coverButton.disabled = true
+      removeCover.disabled = true
+      document.getElementById('post-new')!.setAttribute('disabled', '')
       submit.disabled = true
       const position = {
         start: content.selectionStart,
@@ -412,26 +567,44 @@ Astro.response.headers.set('Cache-Control', 'no-store')
       try {
         const compressed = await compressImageForUpload(file)
         const url = await uploadImageFile(compressed, { folder: 'posts' })
-        const markdown = `\n![${escapeMarkdownAlt(file.name)}](${url})\n`
-        if (content.value === position.value)
-          content.setRangeText(markdown, position.start, position.end, 'end')
-        else content.value += markdown
+        if (target === 'cover') input('cover').value = url
+        else {
+          const markdown = `\n![${escapeMarkdownAlt(file.name)}](${url})\n`
+          if (content.value === position.value)
+            content.setRangeText(markdown, position.start, position.end, 'end')
+          else content.value += markdown
+        }
         save()
+        preview.hidden = false
+        const toggle = document.getElementById('post-preview-toggle')!
+        toggle.setAttribute('aria-expanded', 'true')
+        toggle.textContent = '收起预览'
         updatePreview()
-        status.textContent = '图片已上传并插入正文，发布文章后会显示。'
+        status.textContent =
+          target === 'cover'
+            ? '封面已上传，可在下方预览。'
+            : '图片已插入正文，可在下方实时预览。'
       } catch (error) {
         status.textContent =
           error instanceof Error ? error.message : '图片上传失败'
       } finally {
         uploading = false
-        uploadButton.disabled = false
+        uploadButton.disabled = !imagesEnabled
+        coverButton.disabled = !imagesEnabled
+        removeCover.disabled = false
+        document.getElementById('post-new')!.removeAttribute('disabled')
         submit.disabled = root?.dataset.configured !== 'true'
         fileInput.value = ''
+        coverFile.value = ''
       }
     }
     fileInput.addEventListener('change', () => {
       const file = fileInput.files?.[0]
       if (file) void insertImage(file)
+    })
+    coverFile.addEventListener('change', () => {
+      const file = coverFile.files?.[0]
+      if (file) void insertImage(file, 'cover')
     })
     content.addEventListener('paste', (event) => {
       const file = Array.from(event.clipboardData?.files || []).find((file) =>
@@ -448,7 +621,12 @@ Astro.response.headers.set('Cache-Control', 'no-store')
       publishing = true
       submit.disabled = true
       uploadButton.disabled = true
-      for (const field of fields) input(field).disabled = true
+      coverButton.disabled = true
+      removeCover.disabled = true
+      categories.disabled = true
+      document.getElementById('post-new')!.setAttribute('disabled', '')
+      for (const field of fields)
+        if (field !== 'section') input(field).disabled = true
       feedback.textContent = '正在提交到 GitHub…'
       document.getElementById('post-result')!.hidden = true
       try {
@@ -488,8 +666,8 @@ Astro.response.headers.set('Cache-Control', 'no-store')
         ) as HTMLAnchorElement
         article.href = `/posts/${input('slug').value}`
         document.getElementById('post-result')!.hidden = false
-        feedback.textContent +=
-          ' 如需继续写另一篇，请更换网址标识；当前正文继续保留。'
+        feedback.textContent += ' 已清除已发布草稿，可以继续写新文章。'
+        resetDraft()
       } catch (error) {
         feedback.textContent =
           error instanceof Error
@@ -499,7 +677,12 @@ Astro.response.headers.set('Cache-Control', 'no-store')
         publishing = false
         submit.disabled = false
         uploadButton.disabled = fileInput.disabled
-        for (const field of fields) input(field).disabled = false
+        coverButton.disabled = !imagesEnabled
+        removeCover.disabled = false
+        categories.disabled = false
+        document.getElementById('post-new')!.removeAttribute('disabled')
+        for (const field of fields)
+          if (field !== 'section') input(field).disabled = false
       }
     })
   }
