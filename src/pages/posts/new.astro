@@ -397,9 +397,8 @@ Astro.response.headers.set('Cache-Control', 'no-store')
     uploadButton.addEventListener('click', () => {
       fileInput.click()
     })
-    fileInput.addEventListener('change', async () => {
-      const file = fileInput.files?.[0]
-      if (!file || uploading || publishing) return
+    async function insertImage(file: File) {
+      if (fileInput.disabled || uploading || publishing) return
       uploading = true
       uploadButton.disabled = true
       submit.disabled = true
@@ -419,16 +418,28 @@ Astro.response.headers.set('Cache-Control', 'no-store')
         else content.value += markdown
         save()
         updatePreview()
-        status.textContent = '图片已插入正文。'
+        status.textContent = '图片已上传并插入正文，发布文章后会显示。'
       } catch (error) {
         status.textContent =
           error instanceof Error ? error.message : '图片上传失败'
       } finally {
         uploading = false
         uploadButton.disabled = false
-        submit.disabled = root.dataset.configured !== 'true'
+        submit.disabled = root?.dataset.configured !== 'true'
         fileInput.value = ''
       }
+    }
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files?.[0]
+      if (file) void insertImage(file)
+    })
+    content.addEventListener('paste', (event) => {
+      const file = Array.from(event.clipboardData?.files || []).find((file) =>
+        file.type.startsWith('image/'),
+      )
+      if (!file || fileInput.disabled || uploading || publishing) return
+      event.preventDefault()
+      void insertImage(file)
     })
     form.addEventListener('submit', async (event) => {
       event.preventDefault()

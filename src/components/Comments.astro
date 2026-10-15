@@ -12,7 +12,6 @@ interface Props {
 const { slug, title, variant = 'default' } = Astro.props
 const isGuestbook = variant === 'guestbook'
 const publicOwnerName = import.meta.env.PUBLIC_OWNER_NAME || ''
-const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
 ---
 
 <section
@@ -23,7 +22,6 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
   data-slug={slug}
   data-title={title}
   data-owner-name={publicOwnerName}
-  data-owner-email={publicOwnerEmail}
 >
   <!-- 评论表单 -->
   <form
@@ -41,74 +39,11 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
       tabindex="-1"
       autocomplete="off"
     />
-    <!-- 用户信息区域 - 三列布局 -->
-    <div
-      class="no-focus mb-2 grid grid-cols-1 gap-1 border-b border-stone-200 pb-2 sm:grid-cols-3 sm:gap-2 dark:border-stone-700"
-    >
-      <div class="flex items-center gap-2">
-        <label
-          for="comment-name"
-          class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400"
-          >名称:</label
-        >
-        <input
-          id="comment-name"
-          name="name"
-          type="text"
-          maxlength="50"
-          placeholder="必填，用于展示身份"
-          required
-          class="flex-1 border-0 bg-transparent text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500"
-        />
-      </div>
-      <div class="relative flex items-center gap-2">
-        <label
-          for="comment-email"
-          class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400"
-          >邮箱:</label
-        >
-        <input
-          id="comment-email"
-          name="email"
-          type="email"
-          placeholder="可选，用于头像和通知"
-          class="flex-1 border-0 bg-transparent pr-8 text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500"
-        />
-        <div
-          class="pointer-events-none absolute top-1/2 right-0 -translate-y-1/2"
-        >
-          <img
-            id="avatar-preview"
-            alt="头像预览"
-            loading="lazy"
-            width="24"
-            height="24"
-            class="h-6 w-6 rounded-full border border-stone-300 dark:border-stone-600"
-            src="https://weavatar.com/avatar/?d=mp&s=80"
-          />
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <label
-          for="comment-website"
-          class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400"
-          >网站:</label
-        >
-        <input
-          id="comment-website"
-          name="website"
-          type="url"
-          placeholder="可选，用于引导访问"
-          class="flex-1 border-0 bg-transparent text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500"
-        />
-      </div>
-    </div>
-
     <!-- 评论内容 -->
     <textarea
       id="comment-content"
       name="content"
-      maxlength="1200"
+      maxlength="1000"
       rows="5"
       placeholder="既然来了，不妨留个言再走吧..."
       required
@@ -170,7 +105,7 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
           id="char-count-wrapper"
           class="hidden text-xs text-stone-400 sm:inline dark:text-stone-500"
         >
-          <span id="char-count">0</span> / 1200
+          <span id="char-count">0</span> / 1000
         </span>
         <button
           type="submit"
@@ -354,15 +289,6 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
     }
 
     return emojisConfigPromise
-  }
-
-  const STORAGE_KEY = 'blog-comment-user'
-  const GRAVATAR_DEBOUNCE = 800
-
-  interface StoredUserInfo {
-    name: string
-    email: string
-    website?: string
   }
 
   interface CommentPayload {
@@ -834,17 +760,6 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
     const slug = section.dataset.slug
     const title = section.dataset.title
     const ownerName = section.dataset.ownerName || ''
-    const ownerEmail = section.dataset.ownerEmail || ''
-    let avatarDebounceTimer: ReturnType<typeof setTimeout> | null = null
-
-    signal.addEventListener(
-      'abort',
-      () => {
-        if (avatarDebounceTimer) clearTimeout(avatarDebounceTimer)
-      },
-      { once: true },
-    )
-
     const emojisConfig = await loadEmojisConfig()
     if (signal.aborted) return
 
@@ -854,19 +769,6 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
       'comment-content',
     ) as HTMLTextAreaElement
     const charCount = document.getElementById('char-count') as HTMLElement
-    const nameInput = document.getElementById(
-      'comment-name',
-    ) as HTMLInputElement
-    const emailInput = document.getElementById(
-      'comment-email',
-    ) as HTMLInputElement
-    const websiteInput = document.getElementById(
-      'comment-website',
-    ) as HTMLInputElement
-    const avatarPreview = document.getElementById(
-      'avatar-preview',
-    ) as HTMLImageElement
-
     const commentsLoading = document.getElementById(
       'comments-loading',
     ) as HTMLElement
@@ -901,29 +803,6 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
 
     const packNames = Object.keys(emojisConfig)
     let currentEmojiTarget: HTMLTextAreaElement | null = null
-
-    // 更新头像预览（带防抖）
-    function updateAvatarPreview() {
-      const email = emailInput.value.trim().toLowerCase()
-
-      avatarPreview.style.opacity = '0.5'
-
-      if (avatarDebounceTimer) {
-        clearTimeout(avatarDebounceTimer)
-      }
-
-      avatarDebounceTimer = setTimeout(() => {
-        if (email && email.includes('@')) {
-          const hash = md5(email)
-          avatarPreview.src = `https://weavatar.com/avatar/${hash}?d=identicon&s=80`
-        } else {
-          avatarPreview.src = 'https://weavatar.com/avatar/?d=mp&s=80'
-        }
-        avatarPreview.style.opacity = '1'
-      }, GRAVATAR_DEBOUNCE)
-    }
-
-    emailInput?.addEventListener('input', updateAvatarPreview, { signal })
 
     // 初始化表情选择器
     function initEmojiPicker() {
@@ -1069,26 +948,6 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
 
     initEmojiPicker()
 
-    function loadSavedUserInfo() {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY)
-        if (saved) {
-          const info: StoredUserInfo = JSON.parse(saved)
-          if (info.name) nameInput.value = info.name
-          if (info.email) {
-            emailInput.value = info.email
-            const hash = md5(info.email.toLowerCase().trim())
-            avatarPreview.src = `https://weavatar.com/avatar/${hash}?d=identicon&s=80`
-          }
-          if (info.website) websiteInput.value = info.website
-        }
-      } catch {
-        // 忽略解析错误
-      }
-    }
-
-    loadSavedUserInfo()
-
     contentTextarea?.addEventListener(
       'input',
       () => {
@@ -1148,60 +1007,18 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
       }, 3000)
     }
 
-    // 获取用户信息（优先从 localStorage，其次从主表单）
-    function getSavedUserInfo(): StoredUserInfo {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY)
-        if (saved) {
-          const info = JSON.parse(saved) as StoredUserInfo
-          return {
-            name: info.name || nameInput?.value || '',
-            email: info.email || emailInput?.value || '',
-            website: info.website || websiteInput?.value || '',
-          }
-        }
-      } catch {
-        // 忽略
-      }
-      return {
-        name: nameInput?.value || '',
-        email: emailInput?.value || '',
-        website: websiteInput?.value || '',
-      }
-    }
-
     // 生成内联回复表单HTML
     function createReplyFormHtml(
       replyToId: number,
       replyToName: string,
     ): string {
-      // 使用 localStorage 中保存的用户信息，而不是直接从可能被重置的主表单获取
-      const userInfo = getSavedUserInfo()
       return `
         <form class="reply-form mt-3 rounded-lg border border-stone-200 p-3 dark:border-stone-700" data-reply-to="${replyToId}">
           <input type="hidden" name="replyToId" value="${replyToId}" />
           <input type="hidden" name="replyToName" value="${replyToName}" />
           <input type="text" name="_gotcha" class="hidden" tabindex="-1" autocomplete="off" />
 
-          <div class="no-focus mb-2 grid grid-cols-1 gap-1 border-b border-stone-200 pb-2 sm:grid-cols-3 sm:gap-2 dark:border-stone-200/10">
-            <div class="flex items-center gap-2">
-              <label class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400">名称:</label>
-              <input name="name" type="text" maxlength="50" placeholder="必填" required value="${userInfo.name}"
-                class="flex-1 border-0 bg-transparent text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500" />
-            </div>
-            <div class="flex items-center gap-2">
-              <label class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400">邮箱:</label>
-              <input name="email" type="email" placeholder="可选" value="${userInfo.email}"
-                class="flex-1 border-0 bg-transparent text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500" />
-            </div>
-            <div class="flex items-center gap-2">
-              <label class="shrink-0 text-[16px] text-stone-500 sm:text-sm dark:text-stone-400">网站:</label>
-              <input name="website" type="url" placeholder="可选" value="${userInfo.website}"
-                class="flex-1 border-0 bg-transparent text-[16px] text-stone-900 outline-none placeholder:text-stone-400 sm:text-sm dark:text-stone-100 dark:placeholder:text-stone-500" />
-            </div>
-          </div>
-
-          <textarea name="content" maxlength="800" rows="3" required
+          <textarea name="content" maxlength="1000" rows="3" required
             placeholder="回复 @${replyToName} ..."
             class="no-focus w-full resize-none border-0 bg-transparent text-[16px] leading-relaxed text-stone-900 outline-none placeholder:text-stone-400 dark:text-stone-100 dark:placeholder:text-stone-500"></textarea>
 
@@ -1785,7 +1602,8 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
         if (signal.aborted) return
 
         if (!response.ok) {
-          throw new Error('Failed to fetch comments')
+          const failure = await response.json().catch(() => ({}))
+          throw new Error(failure.error || '加载评论失败，请稍后重试')
         }
 
         const contentType = response.headers.get('content-type') || ''
@@ -1822,6 +1640,12 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
           console.error('Load comments error:', error)
           commentsLoading.classList.add('hidden')
           commentsError.classList.remove('hidden')
+          const message = commentsError.querySelector('p')
+          if (message)
+            message.textContent =
+              error instanceof Error
+                ? error.message
+                : '加载评论失败，请稍后重试'
         }
       }
     }
@@ -2160,32 +1984,6 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
       e.preventDefault()
 
       const formData = new FormData(targetForm)
-      const name = formData.get('name') as string
-      const email = (formData.get('email') as string) || undefined
-
-      const isOwnerName = ownerName !== '' && name === ownerName
-      const isOwnerEmail = ownerEmail !== '' && email === ownerEmail
-
-      // 检查是否需要博主验证（名称或邮箱任一匹配都需要验证）
-      let ownerToken: string | undefined = undefined
-      let isVerifiedOwner = false
-
-      if (isOwnerName || isOwnerEmail) {
-        const storedToken = localStorage.getItem('owner_token')
-        if (!storedToken) {
-          const token = prompt('名称或邮箱与博主相同，请输入验证 token：')
-          if (!token) {
-            showToast('需要验证博主身份', 'error')
-            return
-          }
-          ownerToken = token
-        } else {
-          ownerToken = storedToken
-        }
-        // 只有名称和邮箱都匹配才是真正的博主
-        isVerifiedOwner = isOwnerName && isOwnerEmail
-      }
-
       const replyToIdRaw = (formData.get('replyToId') as string) || undefined
 
       // 检查 replyToId 是否为临时 id（时间戳格式，大于 1600000000000）
@@ -2201,18 +1999,12 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
       const payload: CommentPayload = {
         slug,
         title,
-        name,
-        email,
-        website: (formData.get('website') as string) || undefined,
+        name: '匿名',
         content: formData.get('content') as string,
         replyToId: replyToIdRaw,
         replyToName: (formData.get('replyToName') as string) || undefined,
         _gotcha: formData.get('_gotcha') as string,
         userAgent: navigator.userAgent,
-      }
-
-      if (ownerToken) {
-        payload.ownerToken = ownerToken
       }
 
       const isMainForm = targetForm.id === 'comment-form'
@@ -2225,39 +2017,14 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
       const submitIconCurrent = submitBtnCurrent.querySelector(
         'svg:not(.animate-spin)',
       )
-      const nameInputCurrent = targetForm.querySelector(
-        'input[name="name"]',
-      ) as HTMLInputElement
       const contentInputCurrent = targetForm.querySelector(
         'textarea',
       ) as HTMLTextAreaElement
-
-      if (!payload.name?.trim()) {
-        showToast('请留下称呼', 'error')
-        nameInputCurrent?.focus()
-        return
-      }
 
       if (!payload.content?.trim()) {
         showToast('内容不能为空', 'error')
         contentInputCurrent?.focus()
         return
-      }
-
-      // 先保存用户信息到 localStorage（在 reset 表单之前）
-      const userInfoToSave: StoredUserInfo = {
-        name: payload.name,
-        email: payload.email || '',
-        website: payload.website,
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(userInfoToSave))
-
-      // 如果是回复表单，同步更新主表单的值
-      if (!isMainForm) {
-        if (nameInput) nameInput.value = userInfoToSave.name
-        if (emailInput) emailInput.value = userInfoToSave.email
-        if (websiteInput && userInfoToSave.website)
-          websiteInput.value = userInfoToSave.website
       }
 
       submitBtnCurrent.disabled = true
@@ -2277,16 +2044,7 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
         const data = await response.json()
 
         if (!response.ok) {
-          // 如果是博主 token 验证失败，清除缓存的 token
-          if (response.status === 403 && ownerToken) {
-            localStorage.removeItem('owner_token')
-          }
           throw new Error(data.error || '提交失败')
-        }
-
-        // 如果是博主评论且验证成功，缓存 token
-        if (ownerToken) {
-          localStorage.setItem('owner_token', ownerToken)
         }
 
         if (data.command) {
@@ -2316,7 +2074,7 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
 
         showToast(getSuccessMessage(!isMainForm))
 
-        // 只重置内容，保留用户信息
+        // 清空已提交的内容
         const contentInput = targetForm.querySelector(
           'textarea',
         ) as HTMLTextAreaElement
@@ -2324,11 +2082,6 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
 
         if (isMainForm) {
           charCount.textContent = '0'
-          // 恢复用户信息到表单（因为我们不再调用 reset）
-          const savedInfo = getSavedUserInfo()
-          if (nameInput) nameInput.value = savedInfo.name
-          if (emailInput) emailInput.value = savedInfo.email
-          if (websiteInput) websiteInput.value = savedInfo.website || ''
         } else {
           // 如果是回复，关闭回复框
           targetForm.parentElement!.innerHTML = ''
@@ -2345,10 +2098,13 @@ const publicOwnerEmail = import.meta.env.PUBLIC_OWNER_EMAIL || ''
         }
 
         // 保存到本地缓存并立即显示（不再轮询，刷新页面时会自动验证）
-        saveAndDisplayComment(payload, !isMainForm, isVerifiedOwner)
+        saveAndDisplayComment(payload, !isMainForm, false)
       } catch (error) {
         console.error('Submit error:', error)
-        showToast('提交失败，请重试', 'error')
+        showToast(
+          error instanceof Error ? error.message : '提交失败，请重试',
+          'error',
+        )
       } finally {
         submitBtnCurrent.disabled = false
         if (submitTextCurrent)

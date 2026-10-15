@@ -408,10 +408,12 @@ export async function compressImageForUpload(file: File): Promise<File> {
 
   const image = await loadImage(file)
   const rendered = await renderLoadedImageForUpload(file, image, {
-    maxLongEdge: Number.POSITIVE_INFINITY,
+    maxLongEdge: 2560,
     quality: IMAGE_OUTPUT_QUALITY,
   })
-  return rendered.file.size >= file.size ? file : rendered.file
+  return !rendered.resized && rendered.file.size >= file.size
+    ? file
+    : rendered.file
 }
 
 export async function createAlbumImageFiles(file: File): Promise<{

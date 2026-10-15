@@ -1,10 +1,14 @@
+import {
+  getCommentsRepo,
+  hasCommentsRepo,
+  assertCommentsResponse,
+  CommentsGitHubError,
+} from '@lib/server/comments-github'
 import type { APIRoute } from 'astro'
 import { webApiContext } from '@lib/server/web-api-context'
 import crypto from 'crypto'
 import {
   buildGitHubHeaders,
-  getRepoFromEnv,
-  hasAnyEnv,
   getSiteUrl,
   setCorsHeaders,
 } from '@lib/server/api-utils'
@@ -70,10 +74,6 @@ function checkRateLimit(ip: string): boolean {
   if (record.count >= RATE_LIMIT_MAX) return false
   record.count++
   return true
-}
-
-function getCommentsRepo() {
-  return getRepoFromEnv('COMMENTS_REPO', 'GITHUB_REPO')
 }
 
 function githubHeaders() {
@@ -169,7 +169,7 @@ async function findOrCreateIssue(slug: string, title: string): Promise<number> {
     `https://api.github.com/search/issues?q=repo:${owner}/${repo}+is:issue+label:comments+"slug:${slug}"+in:body`,
     { headers: githubHeaders() },
   )
-  if (!search.ok) throw new Error('Failed to search issues')
+  assertCommentsResponse(search)
 
   const data = await search.json()
   if (data.total_count > 0) return data.items[0].number
@@ -188,7 +188,7 @@ async function findOrCreateIssue(slug: string, title: string): Promise<number> {
       }),
     },
   )
-  if (!create.ok) throw new Error('Failed to create issue')
+  assertCommentsResponse(create)
 
   return (await create.json()).number
 }
@@ -199,7 +199,7 @@ async function findIssue(slug: string): Promise<number | null> {
     `https://api.github.com/search/issues?q=repo:${owner}/${repo}+is:issue+label:comments+"slug:${slug}"+in:body`,
     { headers: githubHeaders() },
   )
-  if (!search.ok) throw new Error('Failed to search issues')
+  assertCommentsResponse(search)
 
   const data = await search.json()
   return data.total_count > 0 ? data.items[0].number : null
@@ -216,7 +216,7 @@ async function fetchIssueComments(
       `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments?per_page=100&page=${page}`,
       { headers: githubHeaders() },
     )
-    if (!response.ok) throw new Error('Failed to fetch comments')
+    assertCommentsResponse(response)
 
     const comments = (await response.json()) as GitHubIssueComment[]
     allComments.push(...comments)
@@ -337,7 +337,7 @@ async function addComment(
     },
   )
 
-  if (!response.ok) throw new Error('Failed to add comment')
+  assertCommentsResponse(response)
 }
 
 export const prerender = false
@@ -350,7 +350,7 @@ export const ALL: APIRoute = async ({ request }) => {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  if (!GITHUB_TOKEN || !hasAnyEnv('COMMENTS_REPO', 'GITHUB_REPO')) {
+  if (!GITHUB_TOKEN || !hasCommentsRepo()) {
     return res.status(500).json({ error: 'Server configuration error' })
   }
 
@@ -448,6 +448,13 @@ export const ALL: APIRoute = async ({ request }) => {
     return res.status(200).json({ success: true, message: '评论提交成功！' })
   } catch (error) {
     console.error('Comment error:', error)
-    return res.status(500).json({ error: '提交评论时出错，请稍后重试' })
+    return res
+      .status(502)
+      .json({
+        error:
+          error instanceof CommentsGitHubError
+            ? error.message
+            : '提交评论时出错，请稍后重试',
+      })
   }
 }
