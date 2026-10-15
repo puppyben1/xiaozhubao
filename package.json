@@ -26,7 +26,7 @@
     "pwa"
   ],
   "scripts": {
-    "dev": "astro dev",
+    "dev": "node --env-file-if-exists=.env.local ./node_modules/astro/bin/astro.mjs dev",
     "dev:network": "astro dev --host",
     "build": "astro check && astro build",
     "preview": "astro preview",
@@ -35,6 +35,8 @@
     "format": "prettier . --write",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "check:admin": "node scripts/check-admin.ts",
+    "check:publishing": "node scripts/check-publishing.ts",
     "new:blog": "bun run scripts/new-blog.ts",
     "new:thought": "bun run scripts/new-thought.ts",
     "new": "bun run scripts/new-blog.ts",

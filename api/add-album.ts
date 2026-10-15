@@ -1,3 +1,4 @@
+import { publishingAuthorization } from '../src/lib/server/admin-auth'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { createAlbum, type AlbumRequest } from '../src/lib/server/album-api'
 import { setCorsHeaders } from '../src/lib/server/api-utils'
@@ -29,7 +30,10 @@ export default async function handler(
   }
 
   try {
-    const result = await createAlbum(parseBody(req), req.headers.authorization)
+    const result = await createAlbum(
+      parseBody(req),
+      publishingAuthorization(req.headers),
+    )
     res.status(result.status).json(result.body)
   } catch {
     res.status(400).json({ success: false, message: '请求体无效' })

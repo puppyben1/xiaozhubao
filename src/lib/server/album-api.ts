@@ -1,9 +1,9 @@
+import { hasPublishingToken } from './publishing'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { buildGitHubHeaders, getRepoFromEnv, hasAnyEnv } from './api-utils'
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
-const THOUGHT_API_TOKEN = process.env.THOUGHT_API_TOKEN
 const CONTENT_BRANCH = process.env.CONTENT_BRANCH?.trim() || 'main'
 const ALBUMS_CONTENT_DIR =
   process.env.ALBUMS_CONTENT_DIR?.trim() || 'src/content/albums'
@@ -51,14 +51,6 @@ function randomId(len = 4): string {
   let s = ''
   for (let i = 0; i < len; i++) s += Math.floor(Math.random() * 10)
   return s
-}
-
-function validateToken(authHeader: string | null | undefined): boolean {
-  const token = authHeader?.replace('Bearer ', '').trim()
-  if (!token) return false
-  if (isLocalAlbumWriteMode()) return true
-  if (!THOUGHT_API_TOKEN) return false
-  return token === THOUGHT_API_TOKEN
 }
 
 function getContentRepo() {
@@ -215,7 +207,7 @@ export async function createAlbum(
     }
   }
 
-  if (!validateToken(authHeader)) {
+  if (!hasPublishingToken(authHeader)) {
     return {
       status: 401,
       body: { success: false, message: '无效的 API Token' },

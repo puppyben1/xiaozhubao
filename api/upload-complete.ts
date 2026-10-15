@@ -1,3 +1,4 @@
+import { publishingAuthorization } from '../src/lib/server/admin-auth'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import {
   completeUpload,
@@ -34,7 +35,7 @@ export default async function handler(
   try {
     const result = await completeUpload(
       parseBody(req),
-      req.headers.authorization,
+      publishingAuthorization(req.headers),
     )
     res.status(result.status).json(result.body)
   } catch {

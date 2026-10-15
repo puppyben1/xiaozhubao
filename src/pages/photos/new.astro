@@ -1,0 +1,1013 @@
+---
+export const prerender = false
+
+import Container from '@components/Container.astro'
+import PageLayout from '@layouts/PageLayout.astro'
+import AdminNav from '@components/AdminNav.astro'
+---
+
+<PageLayout title="新增照片" description="给相册添加新的照片">
+  <AdminNav />
+  <Container class="!max-w-3xl">
+    <div id="album-composer" class="space-y-8">
+      <section class="py-4">
+        <h1
+          class="text-3xl font-semibold text-stone-950 sm:text-4xl dark:text-stone-50"
+        >
+          新增照片
+        </h1>
+        <p
+          class="mt-3 max-w-2xl leading-relaxed text-stone-600 dark:text-stone-400"
+        >
+          上传图片，填写时间和标题后发布到相册。
+        </p>
+      </section>
+
+      <section
+        id="album-image-section"
+        class="animate overflow-hidden rounded-xl border border-stone-200/70 bg-white/35 dark:border-stone-800 dark:bg-stone-900/35"
+      >
+        <div class="border-b border-stone-200/70 p-4 dark:border-stone-800">
+          <div
+            class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <h2
+                class="text-sm font-medium text-stone-900 dark:text-stone-100"
+              >
+                图片
+              </h2>
+              <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                浏览器会自动生成大图和缩略图，再上传到 R2。
+              </p>
+            </div>
+            <button
+              id="image-upload-btn"
+              type="button"
+              class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-stone-200/80 bg-white/65 px-4 text-sm font-medium text-stone-700 transition-colors hover:bg-white hover:text-stone-950 disabled:cursor-not-allowed disabled:opacity-60 dark:border-stone-800 dark:bg-stone-950/45 dark:text-stone-300 dark:hover:bg-stone-900 dark:hover:text-stone-50"
+            >
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"></path>
+              </svg>
+              <span id="image-upload-label">选择图片</span>
+            </button>
+            <input
+              id="image-upload-input"
+              type="file"
+              accept="image/*"
+              multiple
+              class="hidden"
+            />
+          </div>
+          <p
+            id="image-upload-status"
+            class="mt-3 hidden text-xs text-stone-500 dark:text-stone-400"
+          >
+          </p>
+        </div>
+
+        <div
+          id="manual-link-section"
+          class="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_220px]"
+        >
+          <div>
+            <label
+              for="image-url"
+              class="mb-2 block text-sm font-medium text-stone-800 dark:text-stone-200"
+            >
+              图片 URL
+            </label>
+            <input
+              id="image-url"
+              type="url"
+              placeholder="上传后自动填入，也可以手动粘贴"
+              class="w-full rounded-lg border border-stone-200/80 bg-white/45 px-3 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-colors focus:border-stone-400 focus:ring-2 focus:ring-stone-500/10 focus:outline-none dark:border-stone-800 dark:bg-stone-950/35 dark:text-stone-100 dark:placeholder-stone-500 dark:focus:border-stone-600"
+            />
+            <label
+              for="thumbnail-url"
+              class="mt-4 mb-2 block text-sm font-medium text-stone-800 dark:text-stone-200"
+            >
+              缩略图 URL
+            </label>
+            <input
+              id="thumbnail-url"
+              type="url"
+              placeholder="上传后自动填入"
+              class="w-full rounded-lg border border-stone-200/80 bg-white/45 px-3 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-colors focus:border-stone-400 focus:ring-2 focus:ring-stone-500/10 focus:outline-none dark:border-stone-800 dark:bg-stone-950/35 dark:text-stone-100 dark:placeholder-stone-500 dark:focus:border-stone-600"
+            />
+          </div>
+          <div
+            class="overflow-hidden rounded-lg border border-stone-200/65 bg-stone-100/60 dark:border-stone-800 dark:bg-stone-950/35"
+          >
+            <img
+              id="image-preview"
+              alt=""
+              class="hidden h-36 w-full border-0 object-cover shadow-none"
+            />
+            <div
+              id="image-placeholder"
+              class="flex h-36 items-center justify-center px-4 text-center text-xs text-stone-400 dark:text-stone-500"
+            >
+              预览
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="album-queue-section"
+        class="animate hidden overflow-hidden rounded-xl border border-stone-200/70 bg-white/35 dark:border-stone-800 dark:bg-stone-900/35"
+      >
+        <div
+          class="flex items-center justify-between gap-3 border-b border-stone-200/70 p-4 dark:border-stone-800"
+        >
+          <h2 class="text-sm font-medium text-stone-900 dark:text-stone-100">
+            待发布照片
+          </h2>
+          <span id="album-queue-count" class="font-mono text-xs text-stone-400">
+            0 张
+          </span>
+        </div>
+        <div id="album-upload-queue" class="grid gap-3 p-4"></div>
+      </section>
+
+      <section
+        id="manual-album-section"
+        class="animate grid gap-5 rounded-xl border border-stone-200/70 bg-white/35 p-4 dark:border-stone-800 dark:bg-stone-900/35"
+      >
+        <div>
+          <h2 class="text-sm font-medium text-stone-900 dark:text-stone-100">
+            手动发布单张
+          </h2>
+        </div>
+
+        <div>
+          <label
+            for="title"
+            class="mb-2 block text-sm font-medium text-stone-800 dark:text-stone-200"
+          >
+            标题
+          </label>
+          <input
+            id="title"
+            type="text"
+            placeholder="单张照片的标题"
+            class="w-full rounded-lg border border-stone-200/80 bg-white/45 px-3 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-colors focus:border-stone-400 focus:ring-2 focus:ring-stone-500/10 focus:outline-none dark:border-stone-800 dark:bg-stone-950/35 dark:text-stone-100 dark:placeholder-stone-500 dark:focus:border-stone-600"
+          />
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label
+              for="date"
+              class="mb-2 block text-sm font-medium text-stone-800 dark:text-stone-200"
+            >
+              日期
+            </label>
+            <input
+              id="date"
+              type="date"
+              class="w-full rounded-lg border border-stone-200/80 bg-white/45 px-3 py-2.5 text-sm text-stone-900 transition-colors focus:border-stone-400 focus:ring-2 focus:ring-stone-500/10 focus:outline-none dark:border-stone-800 dark:bg-stone-950/35 dark:text-stone-100 dark:focus:border-stone-600"
+            />
+          </div>
+
+          <div>
+            <label
+              for="location"
+              class="mb-2 block text-sm font-medium text-stone-800 dark:text-stone-200"
+            >
+              地点 <span class="text-stone-400">(可选)</span>
+            </label>
+            <input
+              id="location"
+              type="text"
+              placeholder="城市、地点或留空"
+              class="w-full rounded-lg border border-stone-200/80 bg-white/45 px-3 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition-colors focus:border-stone-400 focus:ring-2 focus:ring-stone-500/10 focus:outline-none dark:border-stone-800 dark:bg-stone-950/35 dark:text-stone-100 dark:placeholder-stone-500 dark:focus:border-stone-600"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label
+            for="description"
+            class="mb-2 block text-sm font-medium text-stone-800 dark:text-stone-200"
+          >
+            描述 <span class="text-stone-400">(可选)</span>
+          </label>
+          <textarea
+            id="description"
+            rows="3"
+            placeholder="点开照片时显示在左下角的小字"
+            class="w-full resize-y rounded-lg border border-stone-200/80 bg-white/45 px-3 py-2.5 text-sm leading-7 text-stone-900 placeholder-stone-400 transition-colors focus:border-stone-400 focus:ring-2 focus:ring-stone-500/10 focus:outline-none dark:border-stone-800 dark:bg-stone-950/35 dark:text-stone-100 dark:placeholder-stone-500 dark:focus:border-stone-600"
+          ></textarea>
+        </div>
+      </section>
+
+      <div id="result-section" class="animate hidden">
+        <div
+          id="result-success"
+          class="hidden rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-900/70 dark:bg-emerald-950/25"
+        >
+          <h3 class="font-semibold text-emerald-800 dark:text-emerald-300">
+            发布成功
+          </h3>
+          <p
+            id="result-message"
+            class="mt-1 text-sm text-emerald-700 dark:text-emerald-400"
+          >
+          </p>
+          <div id="result-links" class="mt-3 flex flex-wrap gap-2"></div>
+        </div>
+        <div
+          id="result-error"
+          class="hidden rounded-xl border border-rose-200 bg-rose-50/80 p-4 dark:border-rose-900/70 dark:bg-rose-950/25"
+        >
+          <h3 class="font-semibold text-rose-800 dark:text-rose-300">
+            发布失败
+          </h3>
+          <p
+            id="error-message"
+            class="mt-1 text-sm text-rose-700 dark:text-rose-400"
+          >
+          </p>
+        </div>
+      </div>
+
+      <button
+        id="submit-btn"
+        type="button"
+        class="animate inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-stone-950 px-6 text-sm font-medium text-white transition-all hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-stone-100 dark:text-stone-950 dark:hover:bg-stone-200"
+      >
+        <span id="submit-text">发布照片</span>
+        <span id="submit-loading" class="hidden">发布中...</span>
+      </button>
+    </div>
+  </Container>
+</PageLayout>
+
+<script>
+  import {
+    createAlbumImageFiles,
+    createUploadObjectId,
+    extractImageTakenDate,
+    formatBytes,
+    formatCompression,
+    uploadImageFile,
+  } from '@lib/upload-client'
+
+  type UploadStatusTone = 'muted' | 'success' | 'error'
+
+  const ALBUM_QUEUE_STORAGE_KEY = 'album_composer_upload_queue'
+
+  interface AlbumQueueItem {
+    date: string
+    description: string
+    fileName: string
+    height?: number
+    id: string
+    location: string
+    src: string
+    thumb: string
+    title: string
+    width?: number
+  }
+
+  interface AlbumPublishPayload {
+    alt: string
+    date: string
+    description?: string
+    height?: number
+    location?: string
+    src: string
+    thumb: string
+    title: string
+    width?: number
+  }
+
+  interface AlbumApiData {
+    filename: string
+    filePath: string
+    github: {
+      commitUrl: string
+      fileUrl: string
+    }
+    local?: boolean
+    src: string
+    title: string
+  }
+
+  interface AlbumApiResponse {
+    success: boolean
+    message?: string
+    data?: AlbumApiData
+  }
+
+  function isAlbumQueueItem(value: unknown): value is AlbumQueueItem {
+    if (!value || typeof value !== 'object') return false
+
+    const item = value as Partial<Record<keyof AlbumQueueItem, unknown>>
+    return (
+      typeof item.date === 'string' &&
+      typeof item.description === 'string' &&
+      typeof item.fileName === 'string' &&
+      (item.height === undefined || typeof item.height === 'number') &&
+      typeof item.id === 'string' &&
+      typeof item.location === 'string' &&
+      typeof item.src === 'string' &&
+      typeof item.thumb === 'string' &&
+      typeof item.title === 'string' &&
+      (item.width === undefined || typeof item.width === 'number')
+    )
+  }
+
+  function readAlbumQueueDraft(): AlbumQueueItem[] {
+    try {
+      const raw = localStorage.getItem(ALBUM_QUEUE_STORAGE_KEY)
+      if (!raw) return []
+
+      const parsed = JSON.parse(raw) as unknown
+      return Array.isArray(parsed) ? parsed.filter(isAlbumQueueItem) : []
+    } catch {
+      localStorage.removeItem(ALBUM_QUEUE_STORAGE_KEY)
+      return []
+    }
+  }
+
+  function writeAlbumQueueDraft(items: AlbumQueueItem[]): void {
+    if (items.length === 0) {
+      localStorage.removeItem(ALBUM_QUEUE_STORAGE_KEY)
+      return
+    }
+
+    localStorage.setItem(ALBUM_QUEUE_STORAGE_KEY, JSON.stringify(items))
+  }
+
+  function getLocalDateInputValue(date = new Date()): string {
+    const offsetMinutes = date.getTimezoneOffset()
+    return new Date(date.getTime() - offsetMinutes * 60 * 1000)
+      .toISOString()
+      .slice(0, 10)
+  }
+
+  function escapeHtml(value: string): string {
+    return value.replace(/[&<>"']/g, (char) => {
+      const entities: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }
+      return entities[char] || char
+    })
+  }
+
+  function titleFromFilename(filename: string): string {
+    return (
+      filename
+        .replace(/\.[^.]+$/, '')
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim() || '未命名照片'
+    )
+  }
+
+  function normalizeTitleKey(title: string): string {
+    return title.trim().toLowerCase()
+  }
+
+  function createUniqueTitle(title: string, usedTitles: Set<string>): string {
+    const baseTitle = title.trim() || '未命名照片'
+    let nextTitle = baseTitle
+    let index = 2
+
+    while (usedTitles.has(normalizeTitleKey(nextTitle))) {
+      nextTitle = `${baseTitle} ${index}`
+      index += 1
+    }
+
+    usedTitles.add(normalizeTitleKey(nextTitle))
+    return nextTitle
+  }
+
+  function initAlbumComposer(): void {
+    const composer = document.getElementById('album-composer')
+    if (!composer || composer.dataset.initialized === 'true') return
+    composer.dataset.initialized = 'true'
+
+    const uploadBtn = document.getElementById(
+      'image-upload-btn',
+    ) as HTMLButtonElement
+    const uploadInput = document.getElementById(
+      'image-upload-input',
+    ) as HTMLInputElement
+    const uploadLabel = document.getElementById('image-upload-label')!
+    const uploadStatus = document.getElementById('image-upload-status')!
+    const albumImageSection = document.getElementById('album-image-section')!
+    const manualLinkSection = document.getElementById('manual-link-section')!
+    const imageUrlEl = document.getElementById('image-url') as HTMLInputElement
+    const thumbnailUrlEl = document.getElementById(
+      'thumbnail-url',
+    ) as HTMLInputElement
+    const imagePreview = document.getElementById(
+      'image-preview',
+    ) as HTMLImageElement
+    const imagePlaceholder = document.getElementById('image-placeholder')!
+    const titleEl = document.getElementById('title') as HTMLInputElement
+    const dateEl = document.getElementById('date') as HTMLInputElement
+    const locationEl = document.getElementById('location') as HTMLInputElement
+    const descriptionEl = document.getElementById(
+      'description',
+    ) as HTMLTextAreaElement
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement
+    const submitText = document.getElementById('submit-text')!
+    const submitLoading = document.getElementById('submit-loading')!
+    const queueSection = document.getElementById('album-queue-section')!
+    const queueList = document.getElementById('album-upload-queue')!
+    const queueCount = document.getElementById('album-queue-count')!
+    const manualAlbumSection = document.getElementById('manual-album-section')!
+    const resultSection = document.getElementById('result-section')!
+    const resultSuccess = document.getElementById('result-success')!
+    const resultError = document.getElementById('result-error')!
+    const resultMessage = document.getElementById('result-message')!
+    const resultLinks = document.getElementById('result-links')!
+    const errorMessage = document.getElementById('error-message')!
+
+    localStorage.removeItem('album_api_token')
+    dateEl.value = getLocalDateInputValue()
+    let albumItems: AlbumQueueItem[] = readAlbumQueueDraft()
+    let dateInputEdited = false
+    let isPublishing = false
+    let isUploading = false
+
+    function setUploadStatus(
+      message: string,
+      tone: UploadStatusTone = 'muted',
+    ): void {
+      uploadStatus.textContent = message
+      uploadStatus.classList.remove(
+        'hidden',
+        'text-stone-500',
+        'dark:text-stone-400',
+        'text-emerald-600',
+        'dark:text-emerald-400',
+        'text-rose-600',
+        'dark:text-rose-400',
+      )
+
+      if (tone === 'success') {
+        uploadStatus.classList.add('text-emerald-600', 'dark:text-emerald-400')
+      } else if (tone === 'error') {
+        uploadStatus.classList.add('text-rose-600', 'dark:text-rose-400')
+      } else {
+        uploadStatus.classList.add('text-stone-500', 'dark:text-stone-400')
+      }
+    }
+
+    function syncSubmitButton(): void {
+      submitBtn.disabled = isUploading || isPublishing
+      submitText.textContent =
+        albumItems.length > 1 ? `发布 ${albumItems.length} 张照片` : '发布照片'
+    }
+
+    function setUploadBusy(isBusy: boolean): void {
+      isUploading = isBusy
+      uploadBtn.disabled = isBusy
+      uploadInput.disabled = isBusy
+      uploadLabel.textContent = isBusy ? '上传中' : '选择图片'
+      syncSubmitButton()
+    }
+
+    function setPublishing(isBusy: boolean): void {
+      isPublishing = isBusy
+      submitText.classList.toggle('hidden', isBusy)
+      submitLoading.classList.toggle('hidden', !isBusy)
+      if (!isBusy) submitLoading.textContent = '发布中...'
+      syncSubmitButton()
+    }
+
+    function updatePreview(url: string): void {
+      if (!url) {
+        imagePreview.classList.add('hidden')
+        imagePreview.removeAttribute('src')
+        imagePlaceholder.classList.remove('hidden')
+        return
+      }
+
+      imagePreview.src = url
+      imagePreview.classList.remove('hidden')
+      imagePlaceholder.classList.add('hidden')
+    }
+
+    async function uploadAlbumImage(
+      file: File,
+      index: number,
+      total: number,
+    ): Promise<{ height: number; src: string; thumb: string; width: number }> {
+      const prefix = total > 1 ? `${index}/${total} ` : ''
+      setUploadStatus(`正在生成 ${prefix}大图和缩略图：${file.name}`)
+      const uploadFiles = await createAlbumImageFiles(file)
+      const objectId = createUploadObjectId()
+      setUploadStatus(
+        `正在上传 ${prefix}大图：${formatCompression(file.size, uploadFiles.image.size)}`,
+      )
+      const src = await uploadImageFile(uploadFiles.image, {
+        folder: 'albums',
+        objectId,
+      })
+      setUploadStatus(
+        `正在上传 ${prefix}缩略图：${formatBytes(uploadFiles.thumb.size)}`,
+      )
+      const thumb = await uploadImageFile(uploadFiles.thumb, {
+        folder: 'albums',
+        objectId,
+        variant: 'thumb',
+      })
+      return {
+        height: uploadFiles.height,
+        src,
+        thumb,
+        width: uploadFiles.width,
+      }
+    }
+
+    function renderAlbumQueue(): void {
+      const hasQueuedItems = albumItems.length > 0
+      queueSection.classList.toggle('hidden', !hasQueuedItems)
+      manualLinkSection.classList.toggle('hidden', hasQueuedItems)
+      manualAlbumSection.classList.toggle('hidden', hasQueuedItems)
+      queueCount.textContent = `${albumItems.length} 张`
+      queueList.innerHTML = albumItems
+        .map(
+          (item) => `
+            <article data-album-item-id="${escapeHtml(item.id)}" class="grid gap-3 rounded-lg border border-stone-200/70 bg-white/45 p-3 sm:grid-cols-[120px_minmax(0,1fr)] dark:border-stone-800 dark:bg-stone-950/30">
+              <button type="button" class="group overflow-hidden rounded-md bg-stone-100 dark:bg-stone-900" data-preview-album-item>
+                <img src="${escapeHtml(item.thumb)}" alt="" class="h-32 w-full object-cover transition-opacity group-hover:opacity-85" />
+              </button>
+              <div class="min-w-0 space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                  <p class="truncate text-xs text-stone-500 dark:text-stone-400">${escapeHtml(item.fileName)}</p>
+                  <button type="button" data-remove-album-item class="shrink-0 rounded-md border border-stone-200/80 px-2 py-1 text-xs text-stone-500 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 dark:border-stone-800 dark:text-stone-400 dark:hover:border-rose-900/70 dark:hover:bg-rose-950/30 dark:hover:text-rose-300">移除</button>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
+                  <label class="grid gap-1 text-xs text-stone-500 dark:text-stone-400">
+                    标题
+                    <input data-album-field="title" type="text" value="${escapeHtml(item.title)}" class="w-full rounded-md border border-stone-200/80 bg-white/55 px-2.5 py-2 text-sm text-stone-900 transition-colors focus:border-stone-400 focus:ring-2 focus:ring-stone-500/10 focus:outline-none dark:border-stone-800 dark:bg-stone-950/45 dark:text-stone-100 dark:focus:border-stone-600" />
+                  </label>
+                  <label class="grid gap-1 text-xs text-stone-500 dark:text-stone-400">
+                    日期
+                    <input data-album-field="date" type="date" value="${escapeHtml(item.date)}" class="w-full rounded-md border border-stone-200/80 bg-white/55 px-2.5 py-2 text-sm text-stone-900 transition-colors focus:border-stone-400 focus:ring-2 focus:ring-stone-500/10 focus:outline-none dark:border-stone-800 dark:bg-stone-950/45 dark:text-stone-100 dark:focus:border-stone-600" />
+                  </label>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)]">
+                  <label class="grid gap-1 text-xs text-stone-500 dark:text-stone-400">
+                    地点
+                    <input data-album-field="location" type="text" value="${escapeHtml(item.location)}" placeholder="可选" class="w-full rounded-md border border-stone-200/80 bg-white/55 px-2.5 py-2 text-sm text-stone-900 placeholder-stone-400 transition-colors focus:border-stone-400 focus:ring-2 focus:ring-stone-500/10 focus:outline-none dark:border-stone-800 dark:bg-stone-950/45 dark:text-stone-100 dark:placeholder-stone-500 dark:focus:border-stone-600" />
+                  </label>
+                  <label class="grid gap-1 text-xs text-stone-500 dark:text-stone-400">
+                    描述
+                    <textarea data-album-field="description" rows="2" placeholder="可选" class="w-full resize-y rounded-md border border-stone-200/80 bg-white/55 px-2.5 py-2 text-sm leading-6 text-stone-900 placeholder-stone-400 transition-colors focus:border-stone-400 focus:ring-2 focus:ring-stone-500/10 focus:outline-none dark:border-stone-800 dark:bg-stone-950/45 dark:text-stone-100 dark:placeholder-stone-500 dark:focus:border-stone-600">${escapeHtml(item.description)}</textarea>
+                  </label>
+                </div>
+              </div>
+            </article>
+          `,
+        )
+        .join('')
+      syncSubmitButton()
+    }
+
+    function getImageFiles(files: FileList | File[]): File[] {
+      return Array.from(files).filter((file) => file.type.startsWith('image/'))
+    }
+
+    async function uploadAlbumFiles(files: File[]): Promise<void> {
+      const imageFiles = getImageFiles(files)
+      if (imageFiles.length === 0) {
+        setUploadStatus('没有可上传的图片文件', 'error')
+        return
+      }
+
+      const usedTitles = new Set(
+        albumItems.map((item) => normalizeTitleKey(item.title)),
+      )
+      const uploadedItems: AlbumQueueItem[] = []
+      setUploadBusy(true)
+
+      try {
+        for (let i = 0; i < imageFiles.length; i++) {
+          const file = imageFiles[i]
+          const takenDatePromise = extractImageTakenDate(file)
+          const imageUrls = await uploadAlbumImage(
+            file,
+            i + 1,
+            imageFiles.length,
+          )
+          const takenDate = await takenDatePromise
+          const fallbackTitle =
+            imageFiles.length === 1 && titleEl.value.trim()
+              ? titleEl.value.trim()
+              : titleFromFilename(file.name)
+
+          uploadedItems.push({
+            date:
+              (dateInputEdited ? dateEl.value : takenDate) ||
+              dateEl.value ||
+              getLocalDateInputValue(),
+            description: descriptionEl.value.trim(),
+            fileName: file.name,
+            height: imageUrls.height,
+            id: `${createUploadObjectId()}-${uploadedItems.length}`,
+            location: locationEl.value.trim(),
+            src: imageUrls.src,
+            thumb: imageUrls.thumb,
+            title: createUniqueTitle(fallbackTitle, usedTitles),
+            width: imageUrls.width,
+          })
+        }
+
+        albumItems = [...albumItems, ...uploadedItems]
+        writeAlbumQueueDraft(albumItems)
+        if (uploadedItems[0]) updatePreview(uploadedItems[0].thumb)
+        renderAlbumQueue()
+        setUploadStatus(
+          `已上传 ${uploadedItems.length} 张图片，待发布队列共 ${albumItems.length} 张。`,
+          'success',
+        )
+      } catch (error) {
+        setUploadStatus(
+          error instanceof Error ? error.message : '图片上传失败',
+          'error',
+        )
+      } finally {
+        setUploadBusy(false)
+        uploadInput.value = ''
+      }
+    }
+
+    function hasDraggedFiles(dataTransfer: DataTransfer | null): boolean {
+      if (!dataTransfer) return false
+      if (dataTransfer.items.length > 0) {
+        return Array.from(dataTransfer.items).some(
+          (item) => item.kind === 'file',
+        )
+      }
+      return dataTransfer.files.length > 0
+    }
+
+    function setImageDropActive(isActive: boolean): void {
+      albumImageSection.classList.toggle('ring-2', isActive)
+      albumImageSection.classList.toggle('ring-stone-400/30', isActive)
+      albumImageSection.classList.toggle('dark:ring-stone-500/30', isActive)
+      albumImageSection.classList.toggle('border-stone-400', isActive)
+      albumImageSection.classList.toggle('bg-stone-100/55', isActive)
+      albumImageSection.classList.toggle('dark:border-stone-600', isActive)
+      albumImageSection.classList.toggle('dark:bg-stone-800/35', isActive)
+    }
+
+    function getAlbumItemElement(itemId: string): HTMLElement | undefined {
+      return Array.from(
+        queueList.querySelectorAll<HTMLElement>('[data-album-item-id]'),
+      ).find((itemEl) => itemEl.dataset.albumItemId === itemId)
+    }
+
+    function focusAlbumItemField(
+      itemId: string,
+      field: 'date' | 'description' | 'location' | 'title',
+    ): void {
+      getAlbumItemElement(itemId)
+        ?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+          `[data-album-field="${field}"]`,
+        )
+        ?.focus()
+    }
+
+    function getAlbumPublishPayloads(): AlbumPublishPayload[] | null {
+      if (albumItems.length > 0) {
+        const itemWithoutTitle = albumItems.find((item) => !item.title.trim())
+        if (itemWithoutTitle) {
+          alert('请补全待发布照片的标题')
+          focusAlbumItemField(itemWithoutTitle.id, 'title')
+          return null
+        }
+
+        const itemWithoutDate = albumItems.find((item) => !item.date)
+        if (itemWithoutDate) {
+          alert('请补全待发布照片的日期')
+          focusAlbumItemField(itemWithoutDate.id, 'date')
+          return null
+        }
+
+        return albumItems.map((item) => ({
+          alt: item.title.trim(),
+          date: item.date,
+          description: item.description.trim() || undefined,
+          height: item.height,
+          location: item.location.trim() || undefined,
+          src: item.src,
+          thumb: item.thumb,
+          title: item.title.trim(),
+          width: item.width,
+        }))
+      }
+
+      const src = imageUrlEl.value.trim()
+      const thumb = thumbnailUrlEl.value.trim()
+      const title = titleEl.value.trim()
+      const date = dateEl.value
+
+      if (!src) {
+        alert('请先上传或填写图片 URL')
+        imageUrlEl.focus()
+        return null
+      }
+
+      if (!thumb) {
+        alert('请先上传或填写缩略图 URL')
+        thumbnailUrlEl.focus()
+        return null
+      }
+
+      if (!title) {
+        alert('请输入标题')
+        titleEl.focus()
+        return null
+      }
+
+      if (!date) {
+        alert('请选择日期')
+        dateEl.focus()
+        return null
+      }
+
+      return [
+        {
+          alt: title,
+          date,
+          description: descriptionEl.value.trim() || undefined,
+          location: locationEl.value.trim() || undefined,
+          src,
+          thumb,
+          title,
+        },
+      ]
+    }
+
+    async function createAlbumEntry(
+      payload: AlbumPublishPayload,
+    ): Promise<AlbumApiData> {
+      const response = await fetch('/api/add-album', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+      const data = (await response.json()) as AlbumApiResponse
+
+      if (!response.ok || !data.success || !data.data) {
+        throw new Error(data.message || '照片发布失败')
+      }
+
+      return data.data
+    }
+
+    function renderSuccessLinks(results: AlbumApiData[]): void {
+      if (results.every((result) => result.local)) {
+        resultLinks.innerHTML = `
+          <span class="inline-flex items-center gap-1 rounded bg-stone-100 px-3 py-1 text-sm text-stone-700 dark:bg-stone-700 dark:text-stone-300">
+            本地写入 ${escapeHtml(results.length === 1 ? results[0].filePath : `${results.length} 个文件`)}
+          </span>
+          <a href="/photos" class="inline-flex items-center gap-1 rounded bg-stone-100 px-3 py-1 text-sm text-stone-700 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600">
+            相册页面
+          </a>
+        `
+        return
+      }
+
+      if (results.length === 1) {
+        const [result] = results
+        resultLinks.innerHTML = `
+          <a href="${escapeHtml(result.github.commitUrl)}" target="_blank" class="inline-flex items-center gap-1 rounded bg-green-100 px-3 py-1 text-sm text-green-700 hover:bg-green-200 dark:bg-green-800 dark:text-green-300 dark:hover:bg-green-700">
+            查看 Commit
+          </a>
+          <a href="${escapeHtml(result.github.fileUrl)}" target="_blank" class="inline-flex items-center gap-1 rounded bg-stone-100 px-3 py-1 text-sm text-stone-700 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600">
+            查看文件
+          </a>
+          <a href="/photos" class="inline-flex items-center gap-1 rounded bg-stone-100 px-3 py-1 text-sm text-stone-700 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600">
+            相册页面
+          </a>
+        `
+        return
+      }
+
+      resultLinks.innerHTML = `
+        ${results
+          .map(
+            (result, index) => `
+              <a href="${escapeHtml(result.github.fileUrl)}" target="_blank" class="inline-flex items-center gap-1 rounded bg-stone-100 px-3 py-1 text-sm text-stone-700 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600">
+                文件 ${index + 1}
+              </a>
+            `,
+          )
+          .join('')}
+        <a href="/photos" class="inline-flex items-center gap-1 rounded bg-stone-100 px-3 py-1 text-sm text-stone-700 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600">
+          相册页面
+        </a>
+      `
+    }
+
+    function clearPublishedForm(): void {
+      albumItems = []
+      writeAlbumQueueDraft(albumItems)
+      renderAlbumQueue()
+      imageUrlEl.value = ''
+      thumbnailUrlEl.value = ''
+      titleEl.value = ''
+      locationEl.value = ''
+      descriptionEl.value = ''
+      updatePreview('')
+    }
+
+    uploadBtn.addEventListener('click', () => {
+      uploadInput.click()
+    })
+
+    uploadInput.addEventListener('change', () => {
+      void uploadAlbumFiles(Array.from(uploadInput.files || []))
+    })
+
+    let imageDragDepth = 0
+    albumImageSection.addEventListener('dragenter', (event) => {
+      if (!hasDraggedFiles(event.dataTransfer)) return
+
+      event.preventDefault()
+      imageDragDepth += 1
+      setImageDropActive(true)
+    })
+
+    albumImageSection.addEventListener('dragover', (event) => {
+      if (!hasDraggedFiles(event.dataTransfer)) return
+
+      event.preventDefault()
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy'
+    })
+
+    albumImageSection.addEventListener('dragleave', (event) => {
+      if (!hasDraggedFiles(event.dataTransfer)) return
+
+      imageDragDepth = Math.max(0, imageDragDepth - 1)
+      if (imageDragDepth === 0) setImageDropActive(false)
+    })
+
+    albumImageSection.addEventListener('drop', (event) => {
+      if (!hasDraggedFiles(event.dataTransfer)) return
+
+      event.preventDefault()
+      imageDragDepth = 0
+      setImageDropActive(false)
+
+      const imageFiles = getImageFiles(event.dataTransfer?.files || [])
+      if (imageFiles.length === 0) {
+        setUploadStatus('拖入的文件里没有图片', 'error')
+        return
+      }
+
+      void uploadAlbumFiles(imageFiles)
+    })
+
+    queueList.addEventListener('input', (event) => {
+      const input = event.target as HTMLInputElement | HTMLTextAreaElement
+      const field = input.dataset.albumField
+      if (
+        field !== 'title' &&
+        field !== 'date' &&
+        field !== 'location' &&
+        field !== 'description'
+      ) {
+        return
+      }
+
+      const itemEl = input.closest<HTMLElement>('[data-album-item-id]')
+      const item = albumItems.find(
+        (queueItem) => queueItem.id === itemEl?.dataset.albumItemId,
+      )
+      if (!item) return
+
+      item[field] = input.value
+      writeAlbumQueueDraft(albumItems)
+      syncSubmitButton()
+    })
+
+    queueList.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement
+      const removeButton = target.closest<HTMLButtonElement>(
+        '[data-remove-album-item]',
+      )
+      const itemEl = target.closest<HTMLElement>('[data-album-item-id]')
+      const item = albumItems.find(
+        (queueItem) => queueItem.id === itemEl?.dataset.albumItemId,
+      )
+
+      if (removeButton && item) {
+        albumItems = albumItems.filter((queueItem) => queueItem.id !== item.id)
+        writeAlbumQueueDraft(albumItems)
+        renderAlbumQueue()
+        if (albumItems[0]) {
+          updatePreview(albumItems[0].thumb)
+        } else {
+          updatePreview(thumbnailUrlEl.value || imageUrlEl.value)
+        }
+        return
+      }
+
+      if (item && !target.closest('input, textarea')) updatePreview(item.thumb)
+    })
+
+    dateEl.addEventListener('input', () => {
+      dateInputEdited = true
+    })
+
+    imageUrlEl.addEventListener('input', () =>
+      updatePreview(thumbnailUrlEl.value || imageUrlEl.value),
+    )
+    thumbnailUrlEl.addEventListener('input', () =>
+      updatePreview(thumbnailUrlEl.value || imageUrlEl.value),
+    )
+
+    submitBtn.addEventListener('click', async () => {
+      const payloads = getAlbumPublishPayloads()
+      if (!payloads) return
+
+      setPublishing(true)
+      resultSection.classList.add('hidden')
+      const createdResults: AlbumApiData[] = []
+
+      try {
+        for (let i = 0; i < payloads.length; i++) {
+          submitLoading.textContent =
+            payloads.length > 1
+              ? `发布中 ${i + 1}/${payloads.length}...`
+              : '发布中...'
+          createdResults.push(await createAlbumEntry(payloads[i]))
+        }
+        resultSection.classList.remove('hidden')
+        resultSuccess.classList.remove('hidden')
+        resultError.classList.add('hidden')
+        resultMessage.textContent =
+          createdResults.length === 1
+            ? `照片已成功创建！文件: ${createdResults[0].filename}`
+            : `${createdResults.length} 张照片已成功创建。`
+        renderSuccessLinks(createdResults)
+        clearPublishedForm()
+      } catch (error) {
+        if (createdResults.length > 0 && albumItems.length > 0) {
+          const createdSrcSet = new Set(
+            createdResults.map((result) => result.src),
+          )
+          albumItems = albumItems.filter((item) => !createdSrcSet.has(item.src))
+          writeAlbumQueueDraft(albumItems)
+          renderAlbumQueue()
+        }
+
+        resultSection.classList.remove('hidden')
+        resultSuccess.classList.add('hidden')
+        resultError.classList.remove('hidden')
+        const message = error instanceof Error ? error.message : '网络错误'
+        errorMessage.textContent =
+          createdResults.length > 0
+            ? `已发布 ${createdResults.length}/${payloads.length}，随后失败：${message}`
+            : message
+      } finally {
+        setPublishing(false)
+      }
+    })
+
+    if (albumItems[0]) {
+      updatePreview(albumItems[0].thumb)
+      setUploadStatus(`已恢复 ${albumItems.length} 张待发布照片。`, 'success')
+    }
+    renderAlbumQueue()
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAlbumComposer, {
+      once: true,
+    })
+  } else {
+    initAlbumComposer()
+  }
+
+  document.addEventListener('astro:page-load', initAlbumComposer)
+</script>

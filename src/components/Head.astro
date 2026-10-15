@@ -14,6 +14,10 @@ const siteUrl = import.meta.env.SITE
 const canonicalURL = siteUrl ? new URL(Astro.url.pathname, siteUrl) : Astro.url
 const generator = 'Astro'
 const shouldRegisterServiceWorker = import.meta.env.PROD
+const isEditorPage =
+  Astro.url.pathname.replace(/\/$/, '') === '/admin' ||
+  Astro.url.pathname.startsWith('/admin/') ||
+  /\/(posts|moments|photos|thoughts)\/new\/?$/.test(Astro.url.pathname)
 
 const { title, description } = Astro.props
 ---
@@ -63,6 +67,7 @@ const { title, description } = Astro.props
 
 <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 <meta name="generator" content={generator} />
+{isEditorPage && <meta name="robots" content="noindex, nofollow" />}
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
@@ -86,7 +91,7 @@ const { title, description } = Astro.props
 <meta property="twitter:description" content={description} />
 <!-- <meta property="twitter:image" content={new URL(image, Astro.url)} /> -->
 
-<ClientRouter />
+{!isEditorPage && <ClientRouter />}
 
 <!-- RSS Link -->
 <link

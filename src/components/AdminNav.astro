@@ -1,0 +1,48 @@
+---
+const items = [
+  ['/admin', '管理台'],
+  ['/posts/new', '写文章'],
+  ['/moments/new', '发动态'],
+  ['/photos/new', '传照片'],
+]
+---
+
+<nav aria-label="内容管理" class="admin-nav">
+  {
+    items.map(([href, label]) => (
+      <a
+        href={href}
+        aria-current={
+          Astro.url.pathname.replace(/\/$/, '') === href ? 'page' : undefined
+        }
+      >
+        {label}
+      </a>
+    ))
+  }
+  <form method="post" action="/admin/logout">
+    <button type="submit">退出登录</button>
+  </form>
+</nav>
+<style>
+  .admin-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  form {
+    margin-left: auto;
+  }
+  button {
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+  }
+  a[aria-current],
+  a:hover {
+    color: var(--ink);
+  }
+</style>

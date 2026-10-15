@@ -1,0 +1,101 @@
+---
+export const prerender = false
+import PageLayout from '@layouts/PageLayout.astro'
+import AdminNav from '@components/AdminNav.astro'
+import { getPublishingStatus } from '@lib/server/publishing'
+const status = getPublishingStatus()
+Astro.response.headers.set('Cache-Control', 'no-store')
+---
+
+<PageLayout title="内容管理" description="puppyben 的博客工作台">
+  <AdminNav />
+  <h1>内容管理</h1>
+  <p class="intro">记录学习、项目与生活。</p>
+  <div class="editor-links">
+    <a href="/posts/new"
+      ><strong>写文章 ↗</strong><span
+        >文章、笔记、问题 · Markdown 与本地草稿</span
+      ></a
+    >
+    <a href="/moments/new"
+      ><strong>发动态 ↗</strong><span>一句想法、一段日常，随时记录</span></a
+    >
+    <a href="/photos/new"
+      ><strong>传照片 ↗</strong><span>图片上传、标题与日期</span></a
+    >
+  </div>
+  <section aria-labelledby="publishing-status">
+    <h2 id="publishing-status">发布状态</h2>
+    <p>
+      <span class:list={['status-dot', { ready: status.content }]}
+      ></span>内容发布：{
+        status.content ? '配置已填写，发布时校验权限' : '尚未配置'
+      }
+    </p>
+    <p>
+      <span class:list={['status-dot', { ready: status.images }]}
+      ></span>图片上传：{
+        status.images ? '服务地址已填写，上传时校验连接' : '尚未配置'
+      }
+    </p>
+    <p class="muted">已登录。发布后等待网站自动部署。</p>
+    {
+      !status.content && (
+        <p class="muted">
+          配置接通前，可以编辑文章、保存本地草稿或下载 Markdown。
+        </p>
+      )
+    }
+  </section>
+</PageLayout>
+<style>
+  h1 {
+    font-size: 28.8px;
+    font-weight: 600;
+  }
+  .intro {
+    margin: 14px 0 32px;
+    color: var(--muted);
+  }
+  .editor-links a {
+    display: block;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  strong {
+    display: block;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .editor-links span {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  section {
+    margin-top: 40px;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  h2 {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .status-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .ready {
+    background: #22845b;
+  }
+  .muted {
+    margin-top: 12px;
+    color: var(--muted);
+  }
+</style>

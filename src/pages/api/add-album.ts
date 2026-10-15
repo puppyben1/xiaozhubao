@@ -1,3 +1,4 @@
+import { publishingAuthorization } from '@lib/server/admin-auth'
 import type { APIRoute } from 'astro'
 import { createAlbum, type AlbumRequest } from '@lib/server/album-api'
 
@@ -26,7 +27,10 @@ export const OPTIONS: APIRoute = () =>
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = (await request.json()) as AlbumRequest
-    const result = await createAlbum(body, request.headers.get('authorization'))
+    const result = await createAlbum(
+      body,
+      publishingAuthorization(request.headers),
+    )
 
     return jsonResponse(result.body, result.status)
   } catch {

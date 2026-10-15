@@ -64,7 +64,13 @@ self.addEventListener('fetch', (event) => {
   }
 
   // API 数据应始终走网络，避免离线缓存返回旧评论、点赞等动态内容
-  if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) {
+  if (
+    url.origin === self.location.origin &&
+    (url.pathname.startsWith('/api/') ||
+      url.pathname.replace(/\/$/, '') === '/admin' ||
+      url.pathname.startsWith('/admin/') ||
+      /\/(posts|moments|photos|thoughts)\/new\/?$/.test(url.pathname))
+  ) {
     event.respondWith(fetch(request))
     return
   }

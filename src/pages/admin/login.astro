@@ -1,0 +1,145 @@
+---
+export const prerender = false
+import PageLayout from '@layouts/PageLayout.astro'
+import {
+  ADMIN_COOKIE,
+  SESSION_SECONDS,
+  adminConfigured,
+  createAdminSession,
+  hasAdminSession,
+  sameOrigin,
+  validAdminCredentials,
+} from '@lib/server/admin-auth'
+
+Astro.response.headers.set('Cache-Control', 'no-store')
+const configured = adminConfigured()
+let error = ''
+if (hasAdminSession(Astro.request.headers.get('cookie')))
+  return Astro.redirect('/admin', 303)
+if (Astro.request.method === 'POST') {
+  if (
+    !sameOrigin(
+      Astro.request.headers.get('origin'),
+      Astro.request.headers.get('host'),
+    )
+  ) {
+    Astro.response.status = 403
+    error = '请求来源无效，请重新打开登录页。'
+  } else if (!configured) {
+    Astro.response.status = 503
+    error = '管理登录尚未配置。'
+  } else {
+    let username: string | File | null = null
+    let password: string | File | null = null
+    try {
+      if (Number(Astro.request.headers.get('content-length')) > 8192)
+        throw new Error('Too large')
+      const form = await Astro.request.formData()
+      username = form.get('username')
+      password = form.get('password')
+    } catch {
+      /* Invalid forms are rejected as failed logins. */
+    }
+    if (
+      typeof password === 'string' &&
+      typeof username === 'string' &&
+      username.length <= 200 &&
+      password.length <= 1024 &&
+      validAdminCredentials(username, password)
+    ) {
+      Astro.cookies.set(ADMIN_COOKIE, createAdminSession(), {
+        httpOnly: true,
+        secure: Astro.url.protocol === 'https:' || process.env.VERCEL === '1',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: SESSION_SECONDS,
+      })
+      return Astro.redirect('/admin', 303)
+    }
+    Astro.response.status = 401
+    error = '账号或密码不正确。'
+  }
+}
+---
+
+<PageLayout title="管理登录" description="puppyben 的私人博客管理">
+  <h1>管理登录</h1>
+  <p>登录后，可以写文章、发动态和上传照片。</p>
+  {
+    !configured && (
+      <p class="notice">请先在服务器配置 ADMIN_PASSWORD，再重新部署。</p>
+    )
+  }
+  <form method="post" action="/admin/login">
+    <label for="admin-username">账号</label>
+    <input
+      id="admin-username"
+      name="username"
+      type="text"
+      autocomplete="username"
+      required
+      maxlength="200"
+      disabled={!configured}
+    />
+    <label for="admin-password">管理密码</label>
+    <input
+      id="admin-password"
+      name="password"
+      type="password"
+      autocomplete="current-password"
+      required
+      maxlength="1024"
+      disabled={!configured}
+    />
+    <button type="submit" disabled={!configured}>登录</button>
+    {
+      error && (
+        <p role="alert" class="notice">
+          {error}
+        </p>
+      )
+    }
+  </form>
+</PageLayout>
+<style>
+  h1 {
+    font-size: 28.8px;
+    font-weight: 600;
+  }
+  p {
+    color: var(--muted);
+    margin: 16px 0 28px;
+    line-height: 1.7;
+  }
+  form {
+    max-width: 360px;
+  }
+  label {
+    display: block;
+    margin-bottom: 10px;
+  }
+  input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px;
+    color: var(--ink);
+    margin-bottom: 18px;
+  }
+  button {
+    margin-top: 18px;
+    padding: 10px 24px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:disabled,
+  input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .notice {
+    color: var(--ink);
+  }
+</style>

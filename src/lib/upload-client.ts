@@ -466,14 +466,12 @@ async function readJsonResponse<T>(
 
 export async function uploadImageFile(
   uploadFile: File,
-  token: string,
   options: UploadImageOptions = {},
 ): Promise<string> {
   const signResponse = await fetch('/api/upload-sign', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       filename: uploadFile.name,
@@ -511,7 +509,6 @@ export async function uploadImageFile(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ key: signPayload.data.key }),
     signal: options.signal,

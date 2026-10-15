@@ -1,3 +1,4 @@
+import { publishingAuthorization } from '@lib/server/admin-auth'
 import type { APIRoute } from 'astro'
 import {
   completeUpload,
@@ -31,7 +32,7 @@ export const POST: APIRoute = async ({ request }) => {
     const body = (await request.json()) as UploadCompleteRequest
     const result = await completeUpload(
       body,
-      request.headers.get('authorization'),
+      publishingAuthorization(request.headers),
     )
 
     return jsonResponse(result.body, result.status)

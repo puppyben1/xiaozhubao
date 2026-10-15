@@ -1,3 +1,4 @@
+import { hasPublishingToken } from './publishing'
 const R2_BASE_URL = process.env.R2_IMAGE_BASE_URL?.trim()
 
 const IMAGE_CACHE_MAX_AGE = 31536000
@@ -29,10 +30,7 @@ interface ApiResult {
 function getUploadAuthHeader(
   authHeader: string | null | undefined,
 ): string | null {
-  const token = authHeader?.replace('Bearer ', '').trim()
-
-  if (!token) return null
-  return `Bearer ${token}`
+  return hasPublishingToken(authHeader) ? authHeader! : null
 }
 
 function getErrorMessage(error: unknown): string {
@@ -67,7 +65,7 @@ export async function createUploadSign(
   if (!uploadAuthHeader) {
     return {
       status: 401,
-      body: { success: false, message: '请先输入 API Token' },
+      body: { success: false, message: '登录已失效，请重新登录' },
     }
   }
 
@@ -175,7 +173,7 @@ export async function completeUpload(
   if (!uploadAuthHeader) {
     return {
       status: 401,
-      body: { success: false, message: '请先输入 API Token' },
+      body: { success: false, message: '登录已失效，请重新登录' },
     }
   }
 

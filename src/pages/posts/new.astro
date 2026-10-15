@@ -1,0 +1,492 @@
+---
+export const prerender = false
+import PageLayout from '@layouts/PageLayout.astro'
+import AdminNav from '@components/AdminNav.astro'
+import { getPublishingStatus } from '@lib/server/publishing'
+const status = getPublishingStatus()
+Astro.response.headers.set('Cache-Control', 'no-store')
+---
+
+<PageLayout title="写文章" description="编辑并发布新的博客文章">
+  <AdminNav />
+  <div id="post-composer" data-configured={status.content}>
+    <h1>写文章</h1>
+    <p class="muted intro">记录学习、项目与生活。</p>
+    {
+      !status.content && (
+        <p class="notice">
+          发布配置尚未接通。可以先编辑、保留本地草稿或下载 Markdown。
+        </p>
+      )
+    }
+    <form id="post-form">
+      <label for="post-title">标题</label>
+      <input
+        id="post-title"
+        required
+        maxlength="200"
+        placeholder="给这篇文章起个名字"
+      />
+      <div class="fields">
+        <div>
+          <label for="post-section">分类</label><select id="post-section"
+            ><option value="posts">文章</option><option value="notes"
+              >笔记</option
+            ><option value="questions">问题</option></select
+          >
+        </div>
+        <div>
+          <label for="post-slug">网址标识</label><input
+            id="post-slug"
+            required
+            maxlength="80"
+            pattern="[a-z0-9]+(-[a-z0-9]+)*"
+            placeholder="my-first-post"
+          /><p class="hint">文章地址：/posts/你的标识</p>
+        </div>
+      </div>
+      <label for="post-description">摘要</label><textarea
+        id="post-description"
+        rows="2"
+        maxlength="1000"
+        placeholder="一两句话介绍这篇文章"></textarea>
+      <label for="post-tags">标签</label><input
+        id="post-tags"
+        placeholder="学习，生活，项目（用逗号分隔）"
+      />
+      <label for="post-cover">封面地址（可选）</label><input
+        id="post-cover"
+        placeholder="https://… 或 /covers/…"
+      />
+      <div class="body-label">
+        <label for="post-content">正文 · Markdown</label><button
+          id="post-image"
+          type="button">插入图片</button
+        ><input
+          id="post-image-file"
+          type="file"
+          accept="image/*"
+          hidden
+          disabled={!status.images}
+        />
+      </div>
+      <textarea
+        id="post-content"
+        required
+        rows="16"
+        maxlength="200000"
+        placeholder="从第一段开始写…"></textarea>
+      <p id="post-upload-status" class="hint" role="status">
+        {
+          status.images
+            ? '可以上传图片，或直接粘贴 Markdown 图片链接。'
+            : '图床尚未配置，暂时可粘贴图片链接。'
+        }
+      </p>
+      <div class="actions">
+        <button
+          type="button"
+          id="post-preview-toggle"
+          aria-expanded="false"
+          aria-controls="post-preview">预览</button
+        ><button type="button" id="post-save">保存草稿</button><button
+          type="button"
+          id="post-download">下载 Markdown</button
+        ><button
+          type="submit"
+          id="post-submit"
+          class="primary"
+          disabled={!status.content}>发布文章</button
+        >
+      </div>
+      <p id="post-feedback" role="status" aria-live="polite"></p>
+      <p id="post-result" hidden>
+        <a id="post-commit" target="_blank" rel="noopener noreferrer"
+          >查看 GitHub 提交 ↗</a
+        > · <a id="post-link">部署后查看文章 ↗</a>
+      </p>
+    </form>
+    <section id="post-preview" hidden aria-label="文章预览">
+      <h2 id="post-preview-title"></h2><p
+        id="post-preview-description"
+        class="muted"
+      >
+      </p><article id="post-preview-body"></article><p class="hint">
+        基础 Markdown 预览；HTML、表格和扩展语法以最终部署为准。
+      </p>
+    </section>
+  </div>
+</PageLayout>
+<style>
+  h1 {
+    font-size: 28.8px;
+    font-weight: 600;
+  }
+  .intro {
+    margin: 12px 0 28px;
+  }
+  .muted,
+  .hint {
+    color: var(--muted);
+  }
+  .hint {
+    font-size: 12px;
+    margin-top: 7px;
+  }
+  .notice {
+    padding: 14px 0;
+    margin-bottom: 18px;
+    border-block: 1px solid var(--line);
+    font-size: 14px;
+  }
+  label {
+    display: block;
+    margin: 22px 0 8px;
+    font-size: 14px;
+  }
+  input:not([type='file']),
+  textarea,
+  select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 16px;
+  }
+  textarea {
+    resize: vertical;
+    line-height: 1.8;
+  }
+  #post-content {
+    font-family: var(--font-mono), monospace;
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: 2px solid var(--muted);
+    outline-offset: 2px;
+  }
+  .fields {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 18px;
+  }
+  .body-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 24px;
+  }
+  .body-label label {
+    margin-top: 0;
+  }
+  button {
+    cursor: pointer;
+    font-size: 14px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  button:hover {
+    background: var(--line);
+  }
+  button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  button.primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  #post-feedback,
+  #post-result {
+    margin-top: 16px;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  #post-result a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  #post-preview {
+    margin-top: 36px;
+    padding-top: 30px;
+    border-top: 1px solid var(--line);
+  }
+  #post-preview-title {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    overflow-wrap: anywhere;
+  }
+  #post-preview-body {
+    margin-top: 24px;
+    line-height: 1.9;
+    overflow-wrap: anywhere;
+  }
+  #post-preview-body :global(h2),
+  #post-preview-body :global(h3) {
+    font-size: 21px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+  }
+  #post-preview-body :global(p),
+  #post-preview-body :global(ul),
+  #post-preview-body :global(ol) {
+    margin-bottom: 16px;
+  }
+  #post-preview-body :global(ul) {
+    list-style: disc;
+    padding-left: 24px;
+  }
+  #post-preview-body :global(ol) {
+    list-style: decimal;
+    padding-left: 24px;
+  }
+  #post-preview-body :global(pre) {
+    padding: 16px;
+    background: var(--line);
+    overflow-x: auto;
+    margin-bottom: 16px;
+  }
+  #post-preview-body :global(blockquote) {
+    border-left: 2px solid var(--line);
+    padding-left: 16px;
+    color: var(--muted);
+  }
+  #post-preview-body :global(a) {
+    text-decoration: underline;
+  }
+  #post-preview-body :global(img) {
+    max-width: 100%;
+    margin: 16px 0;
+  }
+  @media (max-width: 480px) {
+    .fields {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>
+<script>
+  import { renderMarkdownPreview } from '@lib/markdown-preview'
+  import {
+    compressImageForUpload,
+    escapeMarkdownAlt,
+    uploadImageFile,
+  } from '@lib/upload-client'
+
+  function initPostComposer() {
+    const root = document.getElementById('post-composer')
+    if (!root || root.dataset.initialized) return
+    root.dataset.initialized = 'true'
+    const input = (id: string) =>
+      document.getElementById(`post-${id}`) as HTMLInputElement
+    const form = document.getElementById('post-form') as HTMLFormElement
+    const content = document.getElementById(
+      'post-content',
+    ) as HTMLTextAreaElement
+    const feedback = document.getElementById('post-feedback')!
+    const preview = document.getElementById('post-preview')!
+    const submit = document.getElementById('post-submit') as HTMLButtonElement
+    const uploadButton = document.getElementById(
+      'post-image',
+    ) as HTMLButtonElement
+    const fileInput = document.getElementById(
+      'post-image-file',
+    ) as HTMLInputElement
+    const key = 'puppyben_post_draft'
+    let requestId = crypto.randomUUID()
+    let uploading = false
+    let publishing = false
+    const fields = [
+      'title',
+      'description',
+      'slug',
+      'section',
+      'tags',
+      'cover',
+      'content',
+    ]
+    input('slug').value = `article-${requestId.slice(0, 8)}`
+    try {
+      const stored = JSON.parse(localStorage.getItem(key) || 'null')
+      if (stored && typeof stored === 'object') {
+        for (const field of fields)
+          if (typeof stored[field] === 'string')
+            input(field).value = stored[field]
+        if (typeof stored.requestId === 'string') requestId = stored.requestId
+        feedback.textContent = '已恢复这台设备上的文章草稿。'
+      }
+    } catch {
+      feedback.textContent = '旧草稿无法恢复，可以重新编辑。'
+    }
+    const draft = () =>
+      Object.fromEntries(fields.map((field) => [field, input(field).value]))
+    const save = () => {
+      try {
+        localStorage.setItem(key, JSON.stringify({ ...draft(), requestId }))
+        return true
+      } catch {
+        feedback.textContent = '本地草稿保存失败，请下载 Markdown 备份。'
+        return false
+      }
+    }
+    function updatePreview() {
+      document.getElementById('post-preview-title')!.textContent =
+        input('title').value || '未命名文章'
+      document.getElementById('post-preview-description')!.textContent =
+        input('description').value
+      document.getElementById('post-preview-body')!.innerHTML =
+        renderMarkdownPreview(content.value)
+    }
+    form.addEventListener('input', () => {
+      save()
+      if (!preview.hidden) updatePreview()
+    })
+    document.getElementById('post-save')!.addEventListener('click', () => {
+      if (save()) feedback.textContent = '草稿已保存在这台设备。'
+    })
+    document
+      .getElementById('post-preview-toggle')!
+      .addEventListener('click', (event) => {
+        preview.hidden = !preview.hidden
+        const button = event.currentTarget as HTMLButtonElement
+        button.setAttribute('aria-expanded', String(!preview.hidden))
+        button.textContent = preview.hidden ? '预览' : '收起预览'
+        if (!preview.hidden) updatePreview()
+      })
+    document.getElementById('post-download')!.addEventListener('click', () => {
+      const metadata = {
+        title: input('title').value,
+        description: input('description').value,
+        section: input('section').value,
+        date: new Date().toISOString(),
+        slug: `posts/${input('slug').value}`,
+        tags: input('tags')
+          .value.split(/[,，]/)
+          .map((t) => t.trim())
+          .filter(Boolean),
+        cover: input('cover').value,
+        draft: true,
+      }
+      const markdown = `---\n${Object.entries(metadata)
+        .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+        .join('\n')}\n---\n\n${content.value}\n`
+      const url = URL.createObjectURL(
+        new Blob([markdown], { type: 'text/markdown;charset=utf-8' }),
+      )
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${input('slug').value || 'draft'}.md`
+      link.click()
+      URL.revokeObjectURL(url)
+      feedback.textContent = '已下载 Markdown 草稿。'
+    })
+    uploadButton.disabled = fileInput.disabled
+    uploadButton.addEventListener('click', () => {
+      fileInput.click()
+    })
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files?.[0]
+      if (!file || uploading || publishing) return
+      uploading = true
+      uploadButton.disabled = true
+      submit.disabled = true
+      const position = {
+        start: content.selectionStart,
+        end: content.selectionEnd,
+        value: content.value,
+      }
+      const status = document.getElementById('post-upload-status')!
+      status.textContent = '正在处理并上传图片…'
+      try {
+        const compressed = await compressImageForUpload(file)
+        const url = await uploadImageFile(compressed, { folder: 'posts' })
+        const markdown = `\n![${escapeMarkdownAlt(file.name)}](${url})\n`
+        if (content.value === position.value)
+          content.setRangeText(markdown, position.start, position.end, 'end')
+        else content.value += markdown
+        save()
+        updatePreview()
+        status.textContent = '图片已插入正文。'
+      } catch (error) {
+        status.textContent =
+          error instanceof Error ? error.message : '图片上传失败'
+      } finally {
+        uploading = false
+        uploadButton.disabled = false
+        submit.disabled = root.dataset.configured !== 'true'
+        fileInput.value = ''
+      }
+    })
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault()
+      if (publishing || uploading || root.dataset.configured !== 'true') return
+      save()
+      publishing = true
+      submit.disabled = true
+      uploadButton.disabled = true
+      for (const field of fields) input(field).disabled = true
+      feedback.textContent = '正在提交到 GitHub…'
+      document.getElementById('post-result')!.hidden = true
+      try {
+        const response = await fetch('/api/add-post', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...draft(),
+            requestId,
+            tags: input('tags')
+              .value.split(/[,，]/)
+              .map((tag) => tag.trim())
+              .filter(Boolean),
+          }),
+        })
+        const result = await response.json()
+        if (!response.ok || !result.success)
+          throw new Error(result.message || '发布失败')
+        feedback.textContent = result.message
+        const commit = document.getElementById(
+          'post-commit',
+        ) as HTMLAnchorElement
+        commit.hidden = !result.data.commitUrl
+        if (
+          typeof result.data.commitUrl === 'string' &&
+          result.data.commitUrl.startsWith('https://github.com/')
+        )
+          commit.href = result.data.commitUrl
+        const article = document.getElementById(
+          'post-link',
+        ) as HTMLAnchorElement
+        article.href = `/posts/${input('slug').value}`
+        document.getElementById('post-result')!.hidden = false
+        feedback.textContent +=
+          ' 如需继续写另一篇，请更换网址标识；当前正文继续保留。'
+      } catch (error) {
+        feedback.textContent =
+          error instanceof Error
+            ? error.message
+            : '网络异常；草稿已保留，请先检查 GitHub 提交记录。'
+      } finally {
+        publishing = false
+        submit.disabled = false
+        uploadButton.disabled = fileInput.disabled
+        for (const field of fields) input(field).disabled = false
+      }
+    })
+  }
+  initPostComposer()
+  document.addEventListener('astro:page-load', initPostComposer)
+</script>
