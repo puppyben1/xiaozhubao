@@ -1,3 +1,4 @@
+import { githubPublishingError } from './github-publishing.ts'
 import { randomUUID } from 'node:crypto'
 import { z } from 'astro/zod'
 import { buildGitHubHeaders, getRepoFromEnv } from './api-utils.ts'
@@ -64,8 +65,7 @@ export async function createThought(
     )
     if (response.status === 409 || response.status === 422)
       return fail(409, '文件标识已存在或提交冲突，请检查 GitHub 提交记录。')
-    if (!response.ok)
-      return fail(502, 'GitHub 写入失败，请检查仓库、目标分支和写入权限。')
+    if (!response.ok) return fail(502, githubPublishingError(response))
     const result = (await response.json()) as {
       content: { html_url: string }
       commit: { sha: string; html_url: string }

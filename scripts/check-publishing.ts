@@ -1,3 +1,7 @@
+import {
+  githubPublishingError,
+  checkPublishingAccess,
+} from '../src/lib/server/github-publishing.ts'
 import assert from 'node:assert/strict'
 import { createPost } from '../src/lib/server/post-api.ts'
 import { renderMarkdownPreview } from '../src/lib/markdown-preview.ts'
@@ -119,6 +123,45 @@ try {
   const failure = await createPost(post, 'Bearer editor-secret')
   assert.equal(failure.status, 502)
   assert.ok(!JSON.stringify(failure).includes('secret transport'))
+
+  for (const [status, expected] of [
+    [401, '无效'],
+    [403, 'Read and write'],
+    [404, 'CONTENT_BRANCH'],
+    [500, '稍后重试'],
+  ] as const) {
+    globalThis.fetch = async () =>
+      new Response('private transport details', { status })
+    const denied = await createPost(post, 'Bearer editor-secret')
+    assert.equal(denied.status, 502)
+    assert.match(denied.body.message, new RegExp(expected))
+    assert.ok(!denied.body.message.includes('private transport details'))
+  }
+  assert.match(
+    githubPublishingError(
+      new Response(null, {
+        status: 403,
+        headers: { 'x-ratelimit-remaining': '0' },
+      }),
+    ),
+    /额度/,
+  )
+  const checks: string[] = []
+  globalThis.fetch = async (url, init) => {
+    assert.ok(
+      !init?.method || init.method === 'GET',
+      'Connection check must never write',
+    )
+    checks.push(String(url))
+    return Response.json({})
+  }
+  assert.equal((await checkPublishingAccess()).success, true)
+  assert.deepEqual(checks, [
+    'https://api.github.com/repos/example/blog',
+    'https://api.github.com/repos/example/blog/branches/main',
+  ])
+  globalThis.fetch = async () => Response.json({}, { status: 401 })
+  assert.match((await checkPublishingAccess()).message, /GITHUB_TOKEN/)
 
   const preview = renderMarkdownPreview(
     '<img src=x onerror=alert(1)>\n\n[x](javascript:alert(1))\n\n![x](https://example.com/a"onerror="x)\n\n```html\n<script>alert(1)</script>\n```\n\n## 标题\n\n- 项目\n- 第二项',

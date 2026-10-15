@@ -1,3 +1,4 @@
+import { githubPublishingError } from './github-publishing.ts'
 import { randomUUID } from 'node:crypto'
 import sharp from 'sharp'
 import { buildGitHubHeaders, getRepoFromEnv } from './api-utils.ts'
@@ -83,8 +84,7 @@ export async function uploadRepositoryImage(
         }),
       },
     )
-    if (!response.ok)
-      return fail(502, '图片写入 GitHub 失败，请检查仓库写入权限后重试')
+    if (!response.ok) return fail(502, githubPublishingError(response))
     const result = (await response.json()) as { commit?: { sha?: string } }
     if (!result.commit?.sha || !/^[a-f0-9]{40}$/.test(result.commit.sha))
       return fail(502, '无法确认图片提交结果，请检查 GitHub')

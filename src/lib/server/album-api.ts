@@ -1,3 +1,4 @@
+import { githubPublishingError } from './github-publishing.ts'
 import { hasPublishingToken } from './publishing'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -143,8 +144,7 @@ async function createFileOnGitHub(
   })
 
   if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`GitHub API error: ${response.status} - ${errorText}`)
+    throw new Error(githubPublishingError(response))
   }
 
   return response.json()

@@ -36,6 +36,8 @@ Astro.response.headers.set('Cache-Control', 'no-store')
       <span class:list={['status-dot', { ready: status.images }]}
       ></span>图片上传：{status.images ? '已接通，上传时校验权限' : '尚未配置'}
     </p>
+    <button id="check-publishing" type="button">检查 GitHub 连接</button>
+    <p id="check-result" class="muted" role="status"></p>
     <p class="muted">已登录。发布后等待网站自动部署。</p>
     {
       !status.content && (
@@ -97,3 +99,27 @@ Astro.response.headers.set('Cache-Control', 'no-store')
     color: var(--muted);
   }
 </style>
+
+<script>
+  import { readApiResponse } from '@lib/api-response'
+  const button = document.getElementById(
+    'check-publishing',
+  ) as HTMLButtonElement
+  button.addEventListener('click', async () => {
+    const result = document.getElementById('check-result')!
+    button.disabled = true
+    result.textContent = '正在检查…'
+    try {
+      const response = await fetch('/api/check-publishing', { method: 'POST' })
+      const data = await readApiResponse<{ success: boolean; message: string }>(
+        response,
+      )
+      result.textContent = data.message
+    } catch (error) {
+      result.textContent =
+        error instanceof Error ? error.message : '连接检查失败'
+    } finally {
+      button.disabled = false
+    }
+  })
+</script>

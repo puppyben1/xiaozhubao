@@ -1,3 +1,4 @@
+import { githubPublishingError } from './github-publishing.ts'
 import { getPublishingStatus, hasPublishingToken } from './publishing.ts'
 import { z } from 'astro/zod'
 import { buildGitHubHeaders, getRepoFromEnv } from './api-utils.ts'
@@ -94,8 +95,7 @@ export async function createPost(
         '该网址标识已存在或提交冲突。请先检查 GitHub 是否已收到上次提交；新文章请换一个标识。',
       )
     }
-    if (!response.ok)
-      return fail(502, 'GitHub 写入失败，请检查仓库、目标分支和写入权限。')
+    if (!response.ok) return fail(502, githubPublishingError(response))
     const result = (await response.json()) as { commit?: { html_url?: string } }
     return {
       status: 201,
