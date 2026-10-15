@@ -1,13 +1,14 @@
 import { timingSafeEqual } from 'node:crypto'
 
 export function getPublishingStatus() {
+  const content = Boolean(
+    process.env.GITHUB_TOKEN?.trim() &&
+    process.env.THOUGHT_API_TOKEN &&
+    (process.env.CONTENT_REPO?.trim() || process.env.GITHUB_REPO?.trim()),
+  )
   return {
-    content: Boolean(
-      process.env.GITHUB_TOKEN?.trim() &&
-      process.env.THOUGHT_API_TOKEN &&
-      (process.env.CONTENT_REPO?.trim() || process.env.GITHUB_REPO?.trim()),
-    ),
-    images: Boolean(process.env.R2_IMAGE_BASE_URL?.trim()),
+    content,
+    images: content || Boolean(process.env.R2_IMAGE_BASE_URL?.trim()),
   }
 }
 

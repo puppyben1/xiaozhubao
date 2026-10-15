@@ -1,3 +1,5 @@
+import { readApiResponse } from './api-response'
+
 interface UploadApiResponse<T> {
   success: boolean
   message?: string
@@ -5,6 +7,7 @@ interface UploadApiResponse<T> {
 }
 
 interface UploadSignResult {
+  provider?: 'github'
   key: string
   url?: string
   uploadUrl: string
@@ -454,14 +457,7 @@ export function createUploadObjectId(): string {
 async function readJsonResponse<T>(
   response: Response,
 ): Promise<UploadApiResponse<T>> {
-  try {
-    return (await response.json()) as UploadApiResponse<T>
-  } catch {
-    return {
-      success: false,
-      message: `请求失败：${response.status}`,
-    }
-  }
+  return readApiResponse<UploadApiResponse<T>>(response)
 }
 
 export async function uploadImageFile(
@@ -487,6 +483,25 @@ export async function uploadImageFile(
 
   if (!signResponse.ok || !signPayload.success || !signPayload.data) {
     throw new Error(signPayload.message || '图片上传签名失败')
+  }
+
+  if (signPayload.data.provider === 'github') {
+    if (uploadFile.size > 4_000_000)
+      throw new Error('图片不能超过 4 MB，请压缩后重试')
+    const response = await fetch(
+      `/api/upload-image?folder=${options.folder || 'posts'}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': uploadFile.type },
+        body: uploadFile,
+        signal: options.signal,
+      },
+    )
+    const payload = await readJsonResponse<UploadCompleteResult>(response)
+    if (!response.ok || !payload.success || !payload.data?.url) {
+      throw new Error(payload.message || '图片上传失败')
+    }
+    return payload.data.url
   }
 
   const uploadHeaders = new Headers()

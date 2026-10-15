@@ -278,6 +278,7 @@ Astro.response.headers.set('Cache-Control', 'no-store')
   }
 </style>
 <script>
+  import { readApiResponse } from '@lib/api-response'
   import { renderMarkdownPreview } from '@lib/markdown-preview'
   import {
     compressImageForUpload,
@@ -454,7 +455,11 @@ Astro.response.headers.set('Cache-Control', 'no-store')
               .filter(Boolean),
           }),
         })
-        const result = await response.json()
+        const result = await readApiResponse<{
+          success: boolean
+          message: string
+          data: { commitUrl?: string }
+        }>(response)
         if (!response.ok || !result.success)
           throw new Error(result.message || '发布失败')
         feedback.textContent = result.message

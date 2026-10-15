@@ -42,7 +42,8 @@
     "new": "bun run scripts/new-blog.ts",
     "t": "bun run scripts/new-thought.ts",
     "pwa:icons": "bun run scripts/generate-pwa-icons.ts",
-    "pwa:check": "bun run scripts/check-pwa.ts"
+    "pwa:check": "bun run scripts/check-pwa.ts",
+    "check:images": "node scripts/check-images.ts"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.9",

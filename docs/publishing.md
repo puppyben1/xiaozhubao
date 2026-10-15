@@ -27,7 +27,7 @@
 
 登录页输入管理员账号和密码。`ADMIN_USERNAME` 默认为 `puppyben`，`ADMIN_PASSWORD` 为管理员密码。GitHub Token 和 `THOUGHT_API_TOKEN` 仅填服务器环境变量，不会发送到编辑页。管理页显示变量是否填写，不验证仓库权限或图床连接。正确性会在真实发布、上传时验证。
 
-图床服务需支持 `POST /api/upload/sign`、返回一次性 `uploadUrl` 和上传 headers，再支持 `POST /api/upload/complete` 返回公开图片 URL，并验证转发的 Bearer 发布凭证。仅配置 R2 桶或公开图片域名不能直接上传。没有图床时，文章仍可使用已有的图片 URL。
+图床服务需支持 `POST /api/upload/sign`、返回一次性 `uploadUrl` 和上传 headers，再支持 `POST /api/upload/complete` 返回公开图片 URL，并验证转发的 Bearer 发布凭证。仅配置 R2 桶或公开图片域名不能直接上传。未配置图床时，自动使用 GitHub 保存图片到 `public/uploads/`，无需额外环境变量。单张上传限制 4 MB，服务端验证并转为 WebP、去除元数据，最大边长 2560。图片使用固定提交的 GitHub Raw 地址，可以立即预览；访问速度取决于访客到 GitHub 的网络。上传图片本身也会产生提交并触发部署。此方式适用于公开博客仓库；大量照片可再接独立图床。
 
 文章会创建 `src/content/posts/web/<网址标识>.md`，网址为 `/posts/<网址标识>`。动态保留原内容目录。接口只创建新文件，不传 GitHub `sha`，已有标识产生冲突时会提示，不覆盖原内容。网络异常时先检查 GitHub 是否已收到提交，避免误认失败后再发一份。
 
@@ -39,8 +39,12 @@
 
 `npm run check:admin` 检查密码、会话签名、过期、轮换及跨站请求拒绝。
 
+`npm run check:images` 检查上传鉴权、大小与格式限制、GitHub 图片写入及非 JSON 错误。
+
 `npm run check:publishing` 检查文章和动态的服务端鉴权、输入校验、Markdown 元数据、GitHub 创建请求、冲突与错误，以及预览转义。检查使用模拟 GitHub 响应，不写真实仓库。
 
 `npm run build` 完成 Astro 类型检查和 Vercel 构建。`npm run dev -- --host 127.0.0.1 --port 4323` 后可访问 `/admin`。本地 `npm run dev` 自动读取 Git 忽略的 `.env.local`；账号及密码只写入此文件，不写入源码或 Git。线上仍需在 Vercel 设置对应环境变量。
 
 没有 ADMIN_PASSWORD 时登录禁用；没有配置发布环境变量时，新文章发布会禁用，动态接口返回明确的未配置错误。真实 GitHub 写入、图片上传、Vercel 自动部署需要在配置后单独验证。
+
+发布与上传路由由 `src/pages/api/` 经 Astro/Vite 打包，不能在根 `api/` 重复注册同名 Vercel 函数，以免绕过打包并产生运行时模块加载错误。

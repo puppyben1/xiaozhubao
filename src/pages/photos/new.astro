@@ -38,7 +38,7 @@ import AdminNav from '@components/AdminNav.astro'
                 图片
               </h2>
               <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">
-                浏览器会自动生成大图和缩略图，再上传到 R2。
+                浏览器会自动生成大图和缩略图，再上传保存。
               </p>
             </div>
             <button
@@ -257,6 +257,7 @@ import AdminNav from '@components/AdminNav.astro'
 </PageLayout>
 
 <script>
+  import { readApiResponse } from '@lib/api-response'
   import {
     createAlbumImageFiles,
     createUploadObjectId,
@@ -774,7 +775,7 @@ import AdminNav from '@components/AdminNav.astro'
         },
         body: JSON.stringify(payload),
       })
-      const data = (await response.json()) as AlbumApiResponse
+      const data = await readApiResponse<AlbumApiResponse>(response)
 
       if (!response.ok || !data.success || !data.data) {
         throw new Error(data.message || '照片发布失败')

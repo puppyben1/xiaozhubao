@@ -34,9 +34,7 @@ Astro.response.headers.set('Cache-Control', 'no-store')
     </p>
     <p>
       <span class:list={['status-dot', { ready: status.images }]}
-      ></span>图片上传：{
-        status.images ? '服务地址已填写，上传时校验连接' : '尚未配置'
-      }
+      ></span>图片上传：{status.images ? '已接通，上传时校验权限' : '尚未配置'}
     </p>
     <p class="muted">已登录。发布后等待网站自动部署。</p>
     {

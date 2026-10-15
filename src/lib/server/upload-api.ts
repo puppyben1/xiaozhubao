@@ -1,4 +1,4 @@
-import { hasPublishingToken } from './publishing'
+import { hasPublishingToken } from './publishing.ts'
 const R2_BASE_URL = process.env.R2_IMAGE_BASE_URL?.trim()
 
 const IMAGE_CACHE_MAX_AGE = 31536000
@@ -51,21 +51,17 @@ export async function createUploadSign(
   body: UploadSignRequest,
   authHeader: string | null | undefined,
 ): Promise<ApiResult> {
-  if (!R2_BASE_URL) {
-    return {
-      status: 500,
-      body: {
-        success: false,
-        message: 'R2_IMAGE_BASE_URL is not configured',
-      },
-    }
-  }
-
   const uploadAuthHeader = getUploadAuthHeader(authHeader)
   if (!uploadAuthHeader) {
     return {
       status: 401,
       body: { success: false, message: '登录已失效，请重新登录' },
+    }
+  }
+  if (!R2_BASE_URL) {
+    return {
+      status: 200,
+      body: { success: true, data: { provider: 'github' } },
     }
   }
 
