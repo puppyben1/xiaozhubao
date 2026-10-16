@@ -11,7 +11,7 @@ draft: false
 
 ## 一、认知篇：先建立坐标系
 
-![传统逆向的人肉流水线 vs Agent 逆向的一条命令接工具](./images/rea-01-manual-vs-agent.png)
+![传统逆向的人肉流水线 vs Agent 逆向的一条命令接工具](/uploads/posts/f8bc667f-8150-46e1-ac3f-fe1e81feb193.webp)
 *图 1：左边是传统逆向的六步人肉流水线，右边是 Agent 逆向把这一步收进 MCP 接口后剩下的东西。*
 
 ### Q1：逆向工程到底是什么？它和"破解软件"是一回事吗？
@@ -52,7 +52,7 @@ draft: false
 
 ## 二、架构篇：四层设计怎么拆
 
-![REA 逆向工程工具箱：Agent 层、MCP 接口、bridge 桥接层、引擎层、目标层](./images/rea-02-toolbox-stack.png)
+![REA 逆向工程工具箱：Agent 层、MCP 接口、bridge 桥接层、引擎层、目标层](/uploads/posts/5dc5cb77-deca-460b-97b9-cbd0299dd3b8.webp)
 *图 2：整套工具箱的五层协作——Agent 提问 → MCP 接口 → 桥接 → 引擎 → 目标。*
 
 ### Q6：REA 的整体结构是什么？
@@ -65,7 +65,7 @@ draft: false
 
 **一句话：** 让 Agent 只记一套调用语法——Hopper、Ghidra、IDA 各有各的 API 和启动方式，不可能要求 Agent 记三套。
 
-![桥接即扩展：一套接口，多引擎可插拔](./images/rea-03-bridge-extensibility.png)
+![桥接即扩展：一套接口，多引擎可插拔](/uploads/posts/d9303674-d4d3-4990-b979-54dad537174e.webp)
 *图 3：上层接口不动，加引擎等于加桥接实现。*
 
 **展开：** `bridge/` 目录把不同供应商的工具封装成一致的 MCP 工具接口，原生分析支持多 Provider 选择，用环境变量切换引擎、调整启动超时：
@@ -91,7 +91,7 @@ REA_GHIDRA_STARTUP_TIMEOUT_MS=60000
 | 运行环境   | SQLite / 进程行为 / 崩溃 | Node.js / PTY / pwntools  |
 | 网络固件   | HAR / pcap / 固件 / 信号 | TShark / Binwalk / sigrok |
 
-![从 EXE 到 APK 到固件：一个工具箱全覆盖](./images/rea-04-one-toolbox-many-targets.png)
+![从 EXE 到 APK 到固件：一个工具箱全覆盖](/uploads/posts/0de8e916-3a6a-4d42-b03b-a37e573462b0.webp)
 *图 4：覆盖广度本身就是 MCP 标准化的价值。*
 
 【我的理解】这张图其实是回答"为什么要标准化"的最好论据：如果只有一个引擎、一种目标，套接口就是多余；正因为目标是五种、引擎是十种，接口的边际价值才成立。
@@ -140,7 +140,7 @@ REA_GHIDRA_STARTUP_TIMEOUT_MS=60000
 
 ### Q15：价值跃迁该怎么讲才不空？
 
-![价值跃迁：效率突破 → 能力下沉 → 模式升级](./images/rea-05-value-leap.png)
+![价值跃迁：效率突破 → 能力下沉 → 模式升级](/uploads/posts/67ccf766-73a6-4e6e-9974-aa64d919c4cc.webp)
 *图 5：L1 是效率，L2 是能力，L3 是范式。*
 
 **一句话：** 分三层讲——L1 效率突破（接入成本一条命令、门槛从月到分钟）、L2 能力下沉（逆向从专业工种变成"会提问就能做"）、L3 模式升级（人用工具 → Agent 用工具，MCP 成为工具链标准接口）。
