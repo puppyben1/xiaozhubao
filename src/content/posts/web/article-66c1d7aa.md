@@ -43,7 +43,7 @@ Kitta 是一套面向领域深度定制的 Code Review Agent。它在龙蜥社�
 
 龙蜥社区 ANCK 内核仓库的 PR 合入量，也在 AI Agent 引入后持续攀升。
 
-![Linux 内核 CVE 修复数量与龙蜥社区 ANCK 仓库 PR 合入量增长趋势](images/kitta-pr-trend.png)
+![Linux 内核 CVE 修复数量与龙蜥社区 ANCK 仓库 PR 合入量增长趋势](/uploads/posts/d79bc11d-d454-43d2-824a-430a848bb1d6.webp)
 
 *图 1：左侧为 Linux 内核上游修复 CVE 数量，右侧为龙蜥社区 ANCK 仓库两个版本的 PR 合入量。*
 
@@ -175,7 +175,7 @@ Kitta 的评估数据来自三类来源：
 
 这里有一个很重要的原则：**不把开发者的默默无视当成认可。** 用户可能不说话，但代码改了什么不会骗人。用客观变更驱动审查和模型迭代，比收集“好评”可靠得多。
 
-![Kitta 线上评审反馈闭环：提交意见、监控代码与评论、LLM 判定、质量指标](images/kitta-online-offline-loop.png)
+![Kitta 线上评审反馈闭环：提交意见、监控代码与评论、LLM 判定、质量指标](/uploads/posts/983a7926-3364-4da1-ab54-e12e9a35bb7b.webp)
 
 *图 2：线上评审意见从提交、监控后续动作，到 LLM 判定相关性和度量质量指标的闭环。*
 
@@ -192,13 +192,13 @@ Kitta 的评估数据来自三类来源：
 1. **PR 分类。** 判断是纯自研补丁还是回合补丁。如果 Commit 中存在类似 `commit xxxx upstream` 的上游补丁声明，就归为回合补丁。分类决定后续检查范围，纯自研补丁不会执行补丁完整性检查和回合一致性检查，避免不必要的开销。
 2. **PR / Commit Message 规范性检查。** 基于社区规范文档，检查 PR 描述、Commit Title、Commit Message。没有问题不报告；有问题则给出修改建议。
 
-![Kitta 对 PR 标题与 Commit Message 给出规范建议](images/kitta-stage2-message.png)
+![Kitta 对 PR 标题与 Commit Message 给出规范建议](/uploads/posts/c5b069b8-3cd6-4209-b587-fabb369fd94f.webp)
 
 *图 3：PR 规范检查会指出标题格式、PR 类型和 bugzilla 链接等具体问题。*
 
 3. **补丁完整性检查。** 针对回合补丁，追踪上游依赖链，按“检索上游 Fixes → 判断是否在 PR 中 → 判断是否已存在于下游仓库”的流程排查。结果分为无遗漏 Fixes、已合入的 Fixes 补丁、遗漏的 Fixes 补丁。
 
-![Kitta 检查遗漏与已合入的 Fixes 补丁](images/kitta-stage3-completeness.png)
+![Kitta 检查遗漏与已合入的 Fixes 补丁](/uploads/posts/d405585f-13ab-494c-b8d6-c72d0268081e.webp)
 
 *图 4：补丁完整性检查会分别列出遗漏的 Fixes 和已合入的 Fixes，并给出下游 commit 对应关系。*
 
@@ -315,3 +315,4 @@ AI 写代码越来越快，但 Review 的人没有变多。Kitta 是一套面向
 ## 原文出处
 
 - 《Alibaba Cloud AI Agent Handbook》：https://github.com/aliyun/ai-agent-handbook
+- 配图取自同一仓库 `assets/imgs/chapter-25/`（Apache-2.0 许可）
